@@ -526,5 +526,25 @@ public class OptionsConstants {
     public static final String RPG_MANUAL_SHUTDOWN = "manual_shutdown";
     public static final String RPG_BEGIN_SHUTDOWN = "begin_shutdown";
 
+  public static final String MAN_INITIATIVE = "init";
+  public static final String MAN_PILOTING = "psr";
+  public static final String MAN_HIT = "hit";
+  public static final String MAN_CLUSTER = "cluster";
+  public static final String MAN_HIT_LOCATION = "location";
+  public static final String MAN_DETERMINE_CRITICALS = "criticals";
+  public static final String MAN_CRITICAL_LOCATION = "critlocation";
+  public static final String MAN_PHYSICAL_ATTACK = "physical";
+  public static final String MAN_PUNCH_LOCATION = "punch";
+  public static final String MAN_KICK_LOCATION = "kick";
+  public static final String MAN_LOSE_CONSCIOUSNESS = "consciousness";
+  public static final String MAN_REGAIN_CONSCIOUSNESS = "wakeup";
+  public static final String MAN_HEAT_SHUTDOWN = "heatshutdown";
+  public static final String MAN_HEAT_RESTART = "heatrestart";
+  public static final String MAN_HEAT_AMMO_EXPLOSION = "heatexplosion";
+  public static final String MAN_FACING_DIRECTION = "facing";
+  public static final String MAN_SPOTLIGHT_HIT = "spotlight";
+  public static final String MAN_UNJAM = "unjam";
+
+
     private OptionsConstants() { }
 }

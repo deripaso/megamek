@@ -36,6 +36,7 @@ import megamek.common.actions.WeaponAttackAction;
 import megamek.common.options.OptionsConstants;
 import megamek.common.weapons.lrms.ExtendedLRMWeapon;
 import megamek.server.GameManager;
+import megamek.server.Server;
 
 /**
  * @author Sebastian Brocks
@@ -269,6 +270,7 @@ public class LRMHandler extends MissileWeaponHandler {
         int rackSize = wtype.getRackSize();
         boolean minRangeELRMAttack = false;
 
+      boolean manClusterOption =  Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_CLUSTER);
         // ELRMs only hit with half their rack size rounded up at minimum range.
         // Ignore this for space combat. 1 hex is 18km across.
         if (wtype instanceof ExtendedLRMWeapon
@@ -281,19 +283,27 @@ public class LRMHandler extends MissileWeaponHandler {
         if (allShotsHit()) {
             // We want buildings and large craft to be able to affect this number with AMS
             // treat as a Streak launcher (cluster roll 11) to make this happen
-            missilesHit = Compute.missilesHit(rackSize,
+            if (manClusterOption && !ae.getOwner().isBot()) {
+              missilesHit = Compute.manualMissilesHit(wtype.getRackSize(), nMissilesModifier, weapon.isHotLoaded(), true, isAdvancedAMS(), ae, weapon.getName(), target.getDisplayName());
+            } else {
+              missilesHit = Compute.missilesHit(rackSize,
                     nMissilesModifier, weapon.isHotLoaded(), true,
                     isAdvancedAMS());
+            }
         } else {
             if (ae instanceof BattleArmor) {
-                missilesHit = Compute.missilesHit(rackSize
-                        * ((BattleArmor) ae).getShootingStrength(),
-                        nMissilesModifier, weapon.isHotLoaded(), false,
-                        isAdvancedAMS());
+              if (!manClusterOption || ae.getOwner().isBot()) {
+                missilesHit = Compute.missilesHit(rackSize * ((BattleArmor) ae).getShootingStrength(), nMissilesModifier, weapon.isHotLoaded(), false, isAdvancedAMS());
+              }
+              else {
+                missilesHit = Compute.manualMissilesHit(rackSize * ((BattleArmor) ae).getShootingStrength(), nMissilesModifier, weapon.isHotLoaded(), false, isAdvancedAMS(), ae, weapon.getName(), target.getDisplayName());
+              }
             } else {
-                missilesHit = Compute.missilesHit(rackSize,
-                        nMissilesModifier, weapon.isHotLoaded(), false,
-                        isAdvancedAMS());
+              if (!manClusterOption || ae.getOwner().isBot()) {
+                missilesHit = Compute.missilesHit(rackSize, nMissilesModifier, weapon.isHotLoaded(), false, isAdvancedAMS());
+              } else {
+                missilesHit = Compute.manualMissilesHit(wtype.getRackSize(), nMissilesModifier, weapon.isHotLoaded(), false, isAdvancedAMS(), ae, weapon.getName(), target.getDisplayName());
+              }
             }
         }
 

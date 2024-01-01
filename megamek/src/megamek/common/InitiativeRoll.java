@@ -13,13 +13,16 @@
  */
 package megamek.common;
 
+import megamek.common.options.OptionsConstants;
+import megamek.server.Server;
+
 import java.io.Serializable;
 import java.util.Vector;
 
 /**
  * A roll, or sequence of rolls, made by the player to determine initiative order. Also contains
  * some methods for ordering players by initiative.
- * 
+ *
  * @author Ben
  * @since April 25, 2002, 12:21 PM
  */
@@ -29,7 +32,9 @@ public class InitiativeRoll implements Comparable<InitiativeRoll>, Serializable 
     private Vector<Integer> originalRolls = new Vector<>();
     private Vector<Boolean> wasRollReplaced = new Vector<>();
     private Vector<Integer> bonuses = new Vector<>();
-    
+   // public Server tServerInstance = Server.getServerInstance();
+    public boolean manualInitiativeRoll = false;
+
     public InitiativeRoll() {
 
     }
@@ -41,12 +46,29 @@ public class InitiativeRoll implements Comparable<InitiativeRoll>, Serializable 
         wasRollReplaced.removeAllElements();
     }
 
-    public void addRoll(int bonus) {
+    public void addRoll(int bonus, ITurnOrdered whois) {
+      Server tServerInstance = Server.getServerInstance();
+      if (tServerInstance != null) {
+        manualInitiativeRoll = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_INITIATIVE);
+        }
+
+      if (!manualInitiativeRoll)
+        {
         int roll = Compute.d6(2);
         rolls.addElement(roll);
         originalRolls.addElement(roll);
         bonuses.addElement(bonus);
         wasRollReplaced.addElement(Boolean.FALSE);
+        }
+      else
+        {
+          int roll = DiceThrower.ThrowInitiative(2, whois);
+          rolls.addElement(roll);
+          originalRolls.addElement(roll);
+          bonuses.addElement(bonus);
+          wasRollReplaced.addElement(Boolean.FALSE);
+        }
+
     }
 
     /**
@@ -118,7 +140,7 @@ public class InitiativeRoll implements Comparable<InitiativeRoll>, Serializable 
             Integer b = bonuses.elementAt(i);
             int t = r+b;
             int to = o+b;
-            
+
             if (wasRollReplaced.elementAt(i)) {
                 stringBuilder.append(to).append("[").append(o).append("+").append(b).append("](")
                         .append(t).append("[").append(r).append("+").append(b).append("])");

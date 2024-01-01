@@ -11989,7 +11989,10 @@ public class GameManager implements IGameManager {
         addReport(r);
 
         // roll
-        final Roll diceRoll = entity.getCrew().rollPilotingSkill();
+
+        //boolean manEntityPSR = entity.getCrew().getPSRoption();--TODO
+        boolean manPSR = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
+        final Roll diceRoll = (!manPSR)? entity.getCrew().rollPilotingSkill() : entity.getCrew().rollPilotingSkill(entity, roll.getDesc());
         r = new Report(2185);
         r.subject = entity.getId();
         r.add(roll.getValueAsString());
@@ -12128,7 +12131,8 @@ public class GameManager implements IGameManager {
         addReport(r);
 
         // roll
-        final Roll diceRoll = entity.getCrew().rollPilotingSkill();
+        boolean manPSR = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
+        final Roll diceRoll = (!manPSR)? entity.getCrew().rollPilotingSkill() : entity.getCrew().rollPilotingSkill(entity, roll.getDesc());
         r = new Report(2185);
         r.subject = entity.getId();
         r.add(roll.getValueAsString());
@@ -14068,7 +14072,8 @@ public class GameManager implements IGameManager {
             if (e.getSelfDestructInitiated() && e.hasEngine()) {
                 r = new Report(6166, Report.PUBLIC);
                 int target = e.getCrew().getPiloting();
-                Roll diceRoll = e.getCrew().rollPilotingSkill();
+                boolean manPSR = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
+                Roll diceRoll = (!manPSR)? e.getCrew().rollPilotingSkill() : e.getCrew().rollPilotingSkill(e, "Avoid self destruct on "+target+"+");
                 r.subject = e.getId();
                 r.addDesc(e);
                 r.indent();
@@ -20603,9 +20608,9 @@ public class GameManager implements IGameManager {
                 entity.doCheckEngineStallRoll(vPhaseReport);
                 return vPhaseReport;
             }
-
-            Roll diceRoll = entity.getCrew().rollPilotingSkill();
-            r = new Report(2299);
+            boolean manPSR = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
+            Roll diceRoll = (!manPSR)? entity.getCrew().rollPilotingSkill() : entity.getCrew().rollPilotingSkill(entity, roll.getDesc());
+            r = new Report(2300);
             r.add(roll);
             r.add(diceRoll);
             r.subject = entity.getId();
@@ -26567,7 +26572,13 @@ public class GameManager implements IGameManager {
         r.add(t.getLocationAbbr(loc));
         r.newlines = 0;
         vDesc.add(r);
-        int roll = Compute.d6(2);
+        boolean manualOption = t.getGame().getOptions().booleanOption(OptionsConstants.MAN_DETERMINE_CRITICALS);
+        int roll;
+        if (manualOption) {
+          roll = Compute.manualD6(2, t, "Determine Crit effect "+t.getLocationAbbr(loc));
+        } else {
+          roll = Compute.d6(2);
+        }
         r = new Report(6310);
         r.subject = t.getId();
         String rollString = "";
@@ -26824,6 +26835,8 @@ public class GameManager implements IGameManager {
         Coords coords = en.getPosition();
         Hex hex = null;
         int hits;
+        int roll;
+        boolean manualOption = en.getGame().getOptions().booleanOption(OptionsConstants.MAN_DETERMINE_CRITICALS);
         if (rollNumber) {
             if (null != coords) {
                 hex = game.getBoard().getHex(coords);
@@ -26835,7 +26848,11 @@ public class GameManager implements IGameManager {
             r.newlines = 0;
             vDesc.addElement(r);
             hits = 0;
-            int roll = Compute.d6(2);
+            if (manualOption) {
+            roll = Compute.manualD6(2, en, "Determine Crit effect for - "+en.getLocationAbbr(loc));
+            } else {
+            roll = Compute.d6(2);
+            }
             r = new Report(6310);
             r.subject = en.getId();
             String rollString = "";
@@ -28465,7 +28482,8 @@ public class GameManager implements IGameManager {
             reports.add(r);
             reports.addAll(damageCrew(entity, 1, crewPos));
         } else {
-            Roll diceRoll = entity.getCrew().rollPilotingSkill();
+            boolean manPSR = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
+            Roll diceRoll = (!manPSR)? entity.getCrew().rollPilotingSkill() : entity.getCrew().rollPilotingSkill(entity, "Avoid pilot damage on "+roll.getValue()+"+");
             r = new Report(2325);
             r.subject = entity.getId();
             r.add(entity.getCrew().getCrewType().getRoleName(crewPos));
@@ -32766,8 +32784,8 @@ public class GameManager implements IGameManager {
                 rollTarget = getEjectModifiers(game, entity, crewPos,
                         autoEject);
                 // roll
-                final Roll diceRoll = entity.getCrew().rollPilotingSkill();
-
+                boolean manPSR = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
+                final Roll diceRoll = (!manPSR)? entity.getCrew().rollPilotingSkill() : entity.getCrew().rollPilotingSkill(entity, rollTarget.getDesc());
                 if (entity.getCrew().getSlotCount() > 1) {
                     r = new Report(2193);
                     r.add(entity.getCrew().getNameAndRole(crewPos));
@@ -33663,7 +33681,8 @@ public class GameManager implements IGameManager {
             addReport(r);
 
             // roll
-            final Roll diceRoll = entity.getCrew().rollPilotingSkill();
+            boolean manPSR = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
+            final Roll diceRoll = (!manPSR)? entity.getCrew().rollPilotingSkill() : entity.getCrew().rollPilotingSkill(entity, "Unstuck on "+rollTarget.getValue()+"+");
             r = new Report(2190);
             r.subject = entity.getId();
             r.add(rollTarget.getValueAsString());
