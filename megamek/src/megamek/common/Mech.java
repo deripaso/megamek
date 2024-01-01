@@ -30,6 +30,7 @@ import megamek.common.weapons.autocannons.LBXACWeapon;
 import megamek.common.weapons.autocannons.UACWeapon;
 import megamek.common.weapons.gaussrifles.GaussWeapon;
 import megamek.common.weapons.ppc.PPCWeapon;
+import megamek.server.Server;
 import org.apache.logging.log4j.LogManager;
 
 import java.io.PrintWriter;
@@ -911,7 +912,11 @@ public abstract class Mech extends Entity {
         }
         return false;
     }
-
+    public boolean getPsrOptions() {
+      if (Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PILOTING)) {
+        return true; // Todo - add condition 2 - check individual entity psr option
+      } else return false;
+    }
     /*
      * (non-Javadoc)
      *
@@ -1929,9 +1934,16 @@ public abstract class Mech extends Entity {
     public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode,
                                    int cover) {
         int roll = -1;
+        boolean manualLocation = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_HIT_LOCATION);
+        boolean manualPunch = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PUNCH_LOCATION);
+        boolean manualKick = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_KICK_LOCATION);
 
         if ((aimedLocation != LOC_NONE) && !aimingMode.isNone()) {
+          if (manualLocation & !this.getOwner().isBot()) {
+            roll = Compute.manualD6(2, this, "Hit Location");
+          } else {
             roll = Compute.d6(2);
+          }
 
             if ((5 < roll) && (roll < 9)) {
                 return new HitData(aimedLocation, side == ToHitData.SIDE_REAR, true);
@@ -1939,7 +1951,11 @@ public abstract class Mech extends Entity {
         }
 
         if ((table == ToHitData.HIT_NORMAL) || (table == ToHitData.HIT_PARTIAL_COVER)) {
-            roll = Compute.d6(2);
+            if (manualLocation & !this.getOwner().isBot()) {
+              roll = Compute.manualD6(2, this, "Hit Location");
+            } else {
+              roll = Compute.d6(2);
+            }
             try {
                 PrintWriter pw = PreferenceManager.getClientPreferences().getMekHitLocLog();
                 if (pw != null) {
@@ -2196,7 +2212,12 @@ public abstract class Mech extends Entity {
             }
         }
         if (table == ToHitData.HIT_PUNCH) {
-            roll = Compute.d6(1);
+            if (manualPunch & !this.getOwner().isBot()) {
+              roll = Compute.manualD6(1, this, "Punch Hit Location");
+              } else {
+              roll = Compute.d6(1);
+              }
+
             try {
                 PrintWriter pw = PreferenceManager.getClientPreferences()
                         .getMekHitLocLog();
@@ -2314,7 +2335,11 @@ public abstract class Mech extends Entity {
             }
         }
         if (table == ToHitData.HIT_KICK) {
-            roll = Compute.d6(1);
+            if (manualKick & !this.getOwner().isBot()) {
+              roll = Compute.manualD6(1, this, "Kick Hit Location");
+              } else {
+              roll = Compute.d6(1);
+              }
             try {
                 PrintWriter pw = PreferenceManager.getClientPreferences()
                         .getMekHitLocLog();
@@ -2355,7 +2380,11 @@ public abstract class Mech extends Entity {
         }
         if ((table == ToHitData.HIT_SWARM)
                 || (table == ToHitData.HIT_SWARM_CONVENTIONAL)) {
-            roll = Compute.d6(2);
+            if (manualLocation & !this.getOwner().isBot()) {
+              roll = Compute.manualD6(2, this, "Swarm Attack Location");
+              } else {
+              roll = Compute.d6(2);
+              }
             int effects;
             if (table == ToHitData.HIT_SWARM_CONVENTIONAL) {
                 effects = HitData.EFFECT_NONE;
@@ -2419,7 +2448,11 @@ public abstract class Mech extends Entity {
             }
         }
         if (table == ToHitData.HIT_ABOVE) {
-            roll = Compute.d6(1);
+            if (manualLocation & !this.getOwner().isBot()) {
+              roll = Compute.manualD6(1, this, "Hit from Above Location");
+            } else {
+              roll = Compute.d6(1);
+              }
             try {
                 PrintWriter pw = PreferenceManager.getClientPreferences()
                         .getMekHitLocLog();
@@ -2461,7 +2494,11 @@ public abstract class Mech extends Entity {
             }
         }
         if (table == ToHitData.HIT_BELOW) {
-            roll = Compute.d6(1);
+            if (manualLocation & !this.getOwner().isBot()) {
+              roll = Compute.manualD6(1, this, "Hit from Below Location");
+            } else {
+              roll = Compute.d6(1);
+              }
             try {
                 PrintWriter pw = PreferenceManager.getClientPreferences()
                         .getMekHitLocLog();
@@ -5489,7 +5526,8 @@ public abstract class Mech extends Entity {
             vPhaseReport.add(Report.subjectReport(2285, getId()).add(psr.getValueAsString()).add(psr.getDesc()));
             vPhaseReport.add(Report.subjectReport(2290, getId()).indent().noNL().add(1).add(psr.getPlainDesc()));
 
-            Roll diceRoll = getCrew().rollPilotingSkill();
+            boolean manPSR = getPsrOptions();
+            Roll diceRoll = (manPSR == false)? getCrew().rollPilotingSkill() : getCrew().rollPilotingSkill(this, "Avoid engine stall on"+psr.getValue()+"+");
             Report r = Report.subjectReport(2300, getId()).add(psr).add(diceRoll);
             if (diceRoll.getIntValue() < psr.getValue()) {
                 setStalled(true);
@@ -5519,7 +5557,8 @@ public abstract class Mech extends Entity {
             vPhaseReport.add(Report.subjectReport(2285, getId()).add(psr.getValueAsString()).add(psr.getDesc()));
             vPhaseReport.add(Report.subjectReport(2290, getId()).indent().noNL().add(1).add(psr.getPlainDesc()));
 
-            Roll diceRoll = getCrew().rollPilotingSkill();
+            boolean manPSR = getPsrOptions();
+            Roll diceRoll = (manPSR == false)? getCrew().rollPilotingSkill() : getCrew().rollPilotingSkill(this, "Try unstall on "+psr.getValue()+"+");
             Report r = Report.subjectReport(2300, getId()).add(psr).add(diceRoll);
             if (diceRoll.getIntValue() < psr.getValue()) {
                 vPhaseReport.add(r.choose(false));

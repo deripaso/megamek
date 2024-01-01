@@ -188,6 +188,11 @@ public class Compute {
         return roll;
     }
 
+    public static int manualD6(int dice, Entity entity, String rolldescription) {
+    int result = DiceThrower.ThrowD6(dice, entity, rolldescription);
+    return result;
+    }
+
     /**
      * Input is in format "ndf", so this can handle 2d6 or 3d10
      * @param number the number of dice to roll
@@ -5348,6 +5353,60 @@ public class Compute {
         throw new RuntimeException(
                 "Could not find number of missiles in hit table");
     }
+
+  /**
+   * Manually roll the number of missiles (or whatever) on the missile hit table, with
+   * the specified mod to the roll.
+   *
+   * @param missiles    - the <code>int</code> number of missiles in the pack.
+   * @param nMod        - the <code>int</code> modifier to the roll for number of
+   *                    missiles that hit.
+   * @param hotloaded   - roll 3d6 take worst 2
+   * @param streak      - force a roll of 11 on the cluster table
+   * @param advancedAMS - the roll can now go below 2, indicating no damage
+   * @param attacker - Entity who is rolling the dice, needed for .manualD6
+   * @param target - where are we shooting?
+   * @param weapon - what are we shooting?
+   */
+  public static int manualMissilesHit(int missiles, int nMod, boolean hotloaded,
+                                boolean streak, boolean advancedAMS, Entity attacker, String weapon, String target) {
+    int nRoll = manualD6(2, attacker, "roll for " +weapon+" Cluster Hit on "+target);
+
+    if (hotloaded) {
+      nRoll = manualD6(3, attacker, "roll (Drop Lowest) for " +weapon+" Cluster Hit on "+target);
+    }
+    if (streak) {
+      nRoll = 11;
+    }
+    nRoll += nMod;
+    if (!advancedAMS) {
+      nRoll = Math.min(Math.max(nRoll, 2), 12);
+    } else {
+      nRoll = Math.min(nRoll, 12);
+    }
+    if (nRoll < 2) {
+      return 0;
+    }
+
+    for (int[] element : clusterHitsTable) {
+      if (element[0] == missiles) {
+        return element[nRoll - 1];
+      }
+    }
+    // BA missiles may have larger number of missiles than max entry on the
+    // table
+    // if so, take largest, subtract value and try again
+    for (int i = clusterHitsTable.length - 1; i >= 0; i--) {
+      if (missiles > clusterHitsTable[i][0]) {
+        return clusterHitsTable[i][nRoll - 1]
+            + Compute.manualMissilesHit(
+            missiles - clusterHitsTable[i][0], nMod,
+            hotloaded, streak, advancedAMS, attacker, weapon, target);
+      }
+    }
+    throw new RuntimeException(
+        "Could not find number of missiles in hit table");
+  }
 
     public static int calculateClusterHitTableAmount(int roll, int rackSize) {
         for (int[] element : clusterHitsTable) {

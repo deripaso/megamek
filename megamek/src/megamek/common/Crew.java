@@ -367,7 +367,7 @@ public class Crew implements Serializable {
     public int getSize() {
         return size;
     }
-    
+
     /**
      * The currentsize of this crew.
      *
@@ -514,7 +514,7 @@ public class Crew implements Serializable {
     public int getHits() {
         return Arrays.stream(hits).min().orElse(0);
     }
-    
+
     /**
      * Uses the table on TO p206 to calculate the number of crew hits based on percentage
      * of total casualties. Used for ejection, boarding actions and such
@@ -563,7 +563,7 @@ public class Crew implements Serializable {
     public void setSize(int newSize) {
         size = newSize;
     }
-    
+
     /**
      * Accessor method to set the current crew size.
      *
@@ -1127,12 +1127,19 @@ public class Crew implements Serializable {
         return Compute.rollD6(2);
     }
 
-    public Roll rollPilotingSkill() {
+    public Roll rollPilotingSkill(Entity entity, String rolldescription) {
+      if (entity.getOwner().isBot() || !manpsroption) {
         if (getOptions().booleanOption(OptionsConstants.PILOT_APTITUDE_PILOTING)) {
             return Compute.rollD6(3, 2);
         }
 
         return Compute.rollD6(2);
+      }
+
+        if (getOptions().booleanOption(OptionsConstants.PILOT_APTITUDE_PILOTING)) {
+            return Compute.manualD6(3, entity, rolldescription+" (Drop lowest)");
+        }
+        return Compute.manualD6(2, entity, rolldescription);
     }
 
     public int getCurrentPilotIndex() {

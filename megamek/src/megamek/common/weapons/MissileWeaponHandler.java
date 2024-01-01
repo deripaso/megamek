@@ -19,6 +19,7 @@ import megamek.common.actions.WeaponAttackAction;
 import megamek.common.enums.GamePhase;
 import megamek.common.options.OptionsConstants;
 import megamek.server.GameManager;
+import megamek.server.Server;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -203,6 +204,8 @@ public class MissileWeaponHandler extends AmmoWeaponHandler {
 
         // add AMS mods
         nMissilesModifier += getAMSHitsMod(vPhaseReport);
+        // Check if Manual Cluster Hits enabled
+        boolean manClusterOption =  Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_CLUSTER);
 
         if (game.getOptions().booleanOption(OptionsConstants.ADVAERORULES_AERO_SANITY)
                 && entityTarget != null && entityTarget.isLargeCraft()) {
@@ -212,8 +215,13 @@ public class MissileWeaponHandler extends AmmoWeaponHandler {
         if (allShotsHit()) {
             // We want buildings and large craft to be able to affect this number with AMS
             // treat as a Streak launcher (cluster roll 11) to make this happen
-            missilesHit = Compute.missilesHit(wtype.getRackSize(), nMissilesModifier,
-                    weapon.isHotLoaded(), true, isAdvancedAMS());
+            if (manClusterOption && !ae.getOwner().isBot()) {
+              missilesHit = Compute.manualMissilesHit(wtype.getRackSize(), nMissilesModifier,
+                  weapon.isHotLoaded(), true, isAdvancedAMS(), ae, weapon.getName(), target.getDisplayName());
+            } else {
+              missilesHit = Compute.missilesHit(wtype.getRackSize(), nMissilesModifier,
+                  weapon.isHotLoaded(), true, isAdvancedAMS());
+            }
         } else {
             if (ae instanceof BattleArmor) {
                 int shootingStrength = 1;
@@ -221,11 +229,20 @@ public class MissileWeaponHandler extends AmmoWeaponHandler {
                         && !weapon.isSquadSupportWeapon()) {
                     shootingStrength = ((BattleArmor) ae).getShootingStrength();
                 }
-                missilesHit = Compute.missilesHit(wtype.getRackSize() * shootingStrength,
-                        nMissilesModifier, weapon.isHotLoaded(), false, isAdvancedAMS());
+              if (manClusterOption && !ae.getOwner().isBot()) {
+                missilesHit = Compute.manualMissilesHit(wtype.getRackSize() * shootingStrength, nMissilesModifier,
+                    weapon.isHotLoaded(), false, isAdvancedAMS(), ae, weapon.getName(), target.getDisplayName());
+              } else {
+                missilesHit = Compute.missilesHit(wtype.getRackSize() * shootingStrength, nMissilesModifier, weapon.isHotLoaded(), false, isAdvancedAMS());
+              }
             } else {
-                missilesHit = Compute.missilesHit(wtype.getRackSize(), nMissilesModifier,
-                        weapon.isHotLoaded(), false, isAdvancedAMS());
+              if (manClusterOption && !ae.getOwner().isBot()) {
+                    missilesHit = Compute.manualMissilesHit(wtype.getRackSize(), nMissilesModifier,
+                    weapon.isHotLoaded(), false, isAdvancedAMS(), ae, weapon.getName(), target.getDisplayName());
+                    } else {
+                    missilesHit = Compute.missilesHit(wtype.getRackSize(), nMissilesModifier,
+                    weapon.isHotLoaded(), false, isAdvancedAMS());
+                    }
             }
         }
 

@@ -1769,7 +1769,16 @@ public class WeaponHandler implements AttackHandler, Serializable {
         // is this an underwater attack on a surface naval vessel?
         underWater = toHit.getHitTable() == ToHitData.HIT_UNDERWATER;
         if (null != ae.getCrew()) {
+          if (!game.getOptions().booleanOption(OptionsConstants.MAN_HIT)){
             roll = ae.getCrew().rollGunnerySkill();
+          } else {
+            String shotdescription = (weapon.getName()+" to - "+ target.getDisplayName()+" - To Hit ");
+            roll = ae.getCrew().rollGunnerySkill(ae, shotdescription);
+          }
+        } else if (game.getOptions().booleanOption(OptionsConstants.MAN_HIT) & !ae.getOwner().isBot()) {
+          String shotdescription = (weapon.getName()+" to - "+ target.getDisplayName()+" - To Hit ");
+          LogManager.getLogger().info(shotdescription);
+            roll = Compute.manualD6(2,ae, shotdescription);
         } else {
             roll = Compute.rollD6(2);
         }
