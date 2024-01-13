@@ -127,7 +127,7 @@ public abstract class TurnOrdered implements ITurnOrdered {
     public int getSmallCraftTurns() {
         return turns_sc;
     }
-    
+
     @Override
     public int getTeleMissileTurns() {
         return turns_tm;
@@ -181,7 +181,7 @@ public abstract class TurnOrdered implements ITurnOrdered {
     public void incrementSmallCraftTurns() {
         turns_sc++;
     }
-    
+
     @Override
     public void incrementTeleMissileTurns() {
         turns_tm++;
@@ -236,7 +236,7 @@ public abstract class TurnOrdered implements ITurnOrdered {
     public void resetSmallCraftTurns() {
         turns_sc = 0;
     }
-    
+
     @Override
     public void resetTeleMissileTurns() {
         turns_tm = 0;
@@ -273,11 +273,11 @@ public abstract class TurnOrdered implements ITurnOrdered {
 
         rollInitAndResolveTies(v, null, bUseInitiativeCompensation);
     }
-    
+
     /**
      * This takes a vector of TurnOrdered (Teams or Players), and does post
      * initiative phase cleanup of the initiative streak bonus.
-     * 
+     *
      * @param v
      *            A vector of items that need to have turns.
      * @param bInitCompBonus
@@ -334,7 +334,7 @@ public abstract class TurnOrdered implements ITurnOrdered {
      * This takes a vector of TurnOrdered (Teams or Players), rolls initiative,
      * and resolves ties. The second argument is used when a specific teams
      * initiative should be re-rolled.
-     * 
+     *
      * @param v
      *            A vector of items that need to have turns.
      * @param rerollRequests null when there should be no re-rolls
@@ -351,7 +351,7 @@ public abstract class TurnOrdered implements ITurnOrdered {
                     || ((item instanceof Team) && ((Team) item).isObserverTeam())) {
                 item.getInitiative().observerRoll();
             }
-            
+
             int bonus = 0;
             if (item instanceof Team) {
                 bonus = ((Team) item).getTotalInitBonus(bInitCompBonus);
@@ -725,7 +725,7 @@ public abstract class TurnOrdered implements ITurnOrdered {
             minSC--;
 
         } // Handle the next 'small craft' turn.
-        
+
         // Allocate the telemissile turns.
         turns_left = total_telemissile_turns;
         while (turns_left > 0) {

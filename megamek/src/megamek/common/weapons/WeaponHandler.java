@@ -1773,13 +1773,13 @@ public class WeaponHandler implements AttackHandler, Serializable {
           if (!game.getOptions().booleanOption(OptionsConstants.MAN_HIT)){
             roll = ae.getCrew().rollGunnerySkill();
           } else {
-            String shotdescription = (weapon.getName()+" to - "+ target.getDisplayName()+" - To Hit ");
+            String shotdescription = (ae.getDisplayName()+" to hit "+target.getDisplayName()+" on "+t.getValue()+"+ ("+t.getDesc()+")"); //TODO - check the t.
             roll = ae.getCrew().rollGunnerySkill(ae, shotdescription);
           }
         } else if (game.getOptions().booleanOption(OptionsConstants.MAN_HIT) & !ae.getOwner().isBot()) {
           String shotdescription = (weapon.getName()+" to - "+ target.getDisplayName()+" - To Hit ");
           LogManager.getLogger().info(shotdescription);
-            roll = Compute.manualD6(2,ae, shotdescription);
+            roll = Compute.manualRollD6(2,ae, shotdescription);
         } else {
             roll = Compute.rollD6(2);
         }

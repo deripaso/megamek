@@ -1127,8 +1127,30 @@ public class Crew implements Serializable {
         return Compute.rollD6(2);
     }
 
+    public Roll rollPilotingSkill() {
+        if (getOptions().booleanOption(OptionsConstants.PILOT_APTITUDE_PILOTING)) {
+            return Compute.rollD6(3, 2);
+        }
+
+        return Compute.rollD6(2);
+    }
+
+  public Roll rollGunnerySkill(Entity entity, String rolldescription) {
+    if (entity.getOwner().isBot()) {
+      if (getOptions().booleanOption(OptionsConstants.PILOT_APTITUDE_PILOTING)) {
+        return Compute.rollD6(3, 2);
+      }
+
+      return Compute.rollD6(2);
+    }
+
+    if (getOptions().booleanOption(OptionsConstants.PILOT_APTITUDE_PILOTING)) {
+      return Compute.manualRollD6(3, entity, rolldescription+" (Drop lowest)");
+    }
+    return Compute.manualRollD6(2, entity, rolldescription);
+  }
     public Roll rollPilotingSkill(Entity entity, String rolldescription) {
-      if (entity.getOwner().isBot() || !manpsroption) {
+      if (entity.getOwner().isBot()) {
         if (getOptions().booleanOption(OptionsConstants.PILOT_APTITUDE_PILOTING)) {
             return Compute.rollD6(3, 2);
         }
@@ -1137,9 +1159,9 @@ public class Crew implements Serializable {
       }
 
         if (getOptions().booleanOption(OptionsConstants.PILOT_APTITUDE_PILOTING)) {
-            return Compute.manualD6(3, entity, rolldescription+" (Drop lowest)");
+            return Compute.manualRollD6(3, entity, rolldescription+" (Drop lowest)");
         }
-        return Compute.manualD6(2, entity, rolldescription);
+        return Compute.manualRollD6(2, entity, rolldescription);
     }
 
     public int getCurrentPilotIndex() {
