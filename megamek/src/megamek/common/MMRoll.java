@@ -21,7 +21,7 @@ import java.util.Vector;
 
 /**
  * Subclass of the roll tracker for <code>MMRandom</code> entropy sources.
- * 
+ *
  * @author Suvarov454
  * @since July 21, 2004, 7:43 AM
  */
@@ -41,10 +41,10 @@ public class MMRoll extends Roll {
      * In some cases, we may only keep the highest subset of the total dice
      */
     private int keep = -1;
-    
+
     /**
      * Most tolls use standard six sided dice.
-     * 
+     *
      * @param rng - the <code>MMRandom</code> that produces random numbers.
      */
     public MMRoll(MMRandom rng) {
@@ -55,7 +55,7 @@ public class MMRoll extends Roll {
 
     /**
      * Most other rolls have a minimum value of zero.
-     * 
+     *
      * @param rng - the <code>MMRandom</code> that produces random numbers.
      * @param max - the smallest <code>int</code> value that is higher than
      *            all rolls; all rolls will be in the value set [0, max).
@@ -69,7 +69,7 @@ public class MMRoll extends Roll {
     /**
      * Create a set of virtual dice with the given number of faces that start
      * with the given value.
-     * 
+     *
      * @param rng - the <code>MMRandom</code> that produces random numbers.
      * @param count - the <code>int</code> number of results possible on each
      *            virtual die.
@@ -81,11 +81,11 @@ public class MMRoll extends Roll {
         this.total = rng.randomInt(this.faces) + this.min;
         all.addElement(this.total);
     }
-    
+
    /**
     * Create a set of virtual dice with the given number of faces that start
     * with the given value, where only a subset of the highest will be kept.
-    * 
+    *
     * @param rng - the <code>MMRandom</code> that produces random numbers.
     * @param count - the <code>int</code> number of results possible on each
     *            virtual die.
@@ -102,7 +102,7 @@ public class MMRoll extends Roll {
 
     /**
      * Add the result from the given RNG source.
-     * 
+     *
      * @param rng - the <code>MMRandom</code> that produces random numbers.
      */
     public void addRoll(MMRandom rng) {
@@ -114,7 +114,7 @@ public class MMRoll extends Roll {
 
         // Add the current virtual die's roll to the running total.
         this.total += result;
-        
+
         //if we are only keeping a subset then total will be different
         if (keep != -1 && all.size() >= keep) {
             this.total = 0;
@@ -124,11 +124,10 @@ public class MMRoll extends Roll {
             }
         }
     }
-
-    /**
+  /**
      * Get the value of the roll. This is the total of each of the rolls of each
      * virtual die.
-     * 
+     *
      * @return the <code>int</code> value of the roll.
      */
     @Override
@@ -139,7 +138,7 @@ public class MMRoll extends Roll {
     /**
      * Get a <code>String</code> containing the roll for each of the virtual
      * dice.
-     * 
+     *
      * @return the <code>String</code> value of the roll.
      */
     @Override
@@ -161,7 +160,7 @@ public class MMRoll extends Roll {
             }
             buffer.append(")");
         }
-        
+
         if (keep != -1) {
             buffer.append(" [");
             buffer.append(keep);
@@ -175,7 +174,7 @@ public class MMRoll extends Roll {
     /**
      * Get a <code>String</code> report that can be parsed to analyse the
      * roll.
-     * 
+     *
      * @return the <code>String</code> details of the roll.
      */
     @Override
@@ -205,7 +204,7 @@ public class MMRoll extends Roll {
             buffer.append(keep);
             buffer.append( " highest rolls)");
         }
-        
+
         // Return the string.
         return buffer.toString();
     }
@@ -213,7 +212,7 @@ public class MMRoll extends Roll {
     /**
      * FIXME : Convert to actual unit testing
      * Test harness for this class.
-     * 
+     *
      * @param args - the array of <code>String</code> arguments: first is the
      *            number of rolls (defaults to two), second is number of sides
      *            (defaults to six sides), third is the starting number
@@ -241,7 +240,7 @@ public class MMRoll extends Roll {
                 sides = Integer.parseInt(args[1]);
                 start = Integer.parseInt(args[2]);
             }
-            
+
             // Make sure that we got good input.
             if (count < 1) {
                 LogManager.getLogger().error("You must specify at least one roll.");
@@ -256,7 +255,7 @@ public class MMRoll extends Roll {
         }
 
         count = 2;
-        
+
         // Generate the RNG
         rng = MMRandom.generate(whichRNG);
 
@@ -279,4 +278,31 @@ public class MMRoll extends Roll {
         Roll.output(roll2);
 
     }
+
+  /**
+   * Workaround for manual dice input where Roll type required.
+   * @param dice - <code>int</code> from DiceThrower.ThrowD6
+   */
+  public static class manRoll extends Roll {
+private int result;
+    public manRoll (int count, int start, int result) {
+      super(count, start);
+    this.result = result;
+    }
+    @Override
+    public int getIntValue() {
+      return this.result;
+    }
+
+    @Override
+    public String toString() {
+      return Integer.toString(this.result);
+    }
+
+    @Override
+    public String getReport() {
+      String roll = "Roll #"+this.id+" Manual Result: "+this.result;
+      return roll;
+    }
+  }
 }

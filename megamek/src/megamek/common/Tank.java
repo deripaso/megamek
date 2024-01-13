@@ -21,6 +21,7 @@ import megamek.common.enums.MPBoosters;
 import megamek.common.options.OptionsConstants;
 import megamek.common.weapons.flamers.VehicleFlamerWeapon;
 import megamek.common.weapons.lasers.CLChemicalLaserWeapon;
+import megamek.server.Server;
 import org.apache.logging.log4j.LogManager;
 
 import java.util.*;
@@ -1004,6 +1005,7 @@ public class Tank extends Entity {
     @Override
     public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode,
                                    int cover) {
+      boolean manualLocation = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_HIT_LOCATION);
         int nArmorLoc = LOC_FRONT;
         boolean bSide = false;
         boolean bRear = false;
@@ -1021,7 +1023,7 @@ public class Tank extends Entity {
             }
             if ((side == moveInDirection) || (side == ToHitData.SIDE_LEFT)
                     || (side == ToHitData.SIDE_RIGHT)) {
-                if (!ignoreTurret) {
+                if (!ignoreTurret) { //TODO - check if need to implement manual throws
                     // on a hull down vee, all hits expect for those that come
                     // from the opposite direction to which it entered the hex
                     // it went Hull Down in go to turret if one exists.
@@ -1059,7 +1061,12 @@ public class Tank extends Entity {
         HitData rv = new HitData(nArmorLoc);
         boolean bHitAimed = false;
         if ((aimedLocation != LOC_NONE) && !aimingMode.isNone()) {
-            int roll = Compute.d6(2);
+            int roll;
+            if (!manualLocation || this.getOwner().isBot()) {
+              roll = Compute.d6(2);
+            } else {
+            roll = Compute.manualD6(2,this,this.getDisplayName()+" Hit Location Roll");
+            }
 
             if ((5 < roll) && (roll < 9)) {
                 rv = new HitData(aimedLocation, side == ToHitData.SIDE_REAR,
@@ -1068,7 +1075,13 @@ public class Tank extends Entity {
             }
         }
         if (!bHitAimed) {
-            switch (Compute.d6(2)) {
+          int roll;
+          if (!manualLocation || this.getOwner().isBot()) {
+            roll = Compute.d6(2);
+          } else {
+            roll = Compute.manualD6(2,this,this.getDisplayName()+" Hit Location Roll");
+          }
+            switch (roll) {
                 case 2:
                     if (game.getOptions().booleanOption(OptionsConstants.ADVCOMBAT_VEHICLES_THRESHOLD)) {
                         setPotCrit(HitData.EFFECT_CRITICAL);
@@ -1183,13 +1196,13 @@ public class Tank extends Entity {
                 case 10:
                     if (!ignoreTurret) {
                         if (!hasNoDualTurret()) {
-                            int roll = Compute.d6();
+                            int roll10 = Compute.d6();
                             if (side == ToHitData.SIDE_FRONT) {
-                                roll -= 2;
+                                roll10 -= 2;
                             } else if (side == ToHitData.SIDE_REAR) {
-                                roll += 2;
+                                roll10 += 2;
                             }
-                            if (roll <= 3) {
+                            if (roll10 <= 3) {
                                 rv = new HitData(LOC_TURRET_2);
                             } else {
                                 rv = new HitData(LOC_TURRET);
@@ -1202,13 +1215,13 @@ public class Tank extends Entity {
                 case 11:
                     if (!ignoreTurret) {
                         if (!hasNoDualTurret()) {
-                            int roll = Compute.d6();
+                            int roll11 = Compute.d6();
                             if (side == ToHitData.SIDE_FRONT) {
-                                roll -= 2;
+                                roll11 -= 2;
                             } else if (side == ToHitData.SIDE_REAR) {
-                                roll += 2;
+                                roll11 += 2;
                             }
-                            if (roll <= 3) {
+                            if (roll11 <= 3) {
                                 rv = new HitData(LOC_TURRET_2);
                             } else {
                                 rv = new HitData(LOC_TURRET);
@@ -1228,13 +1241,13 @@ public class Tank extends Entity {
                         }
                     } else {
                         if (!hasNoDualTurret()) {
-                            int roll = Compute.d6();
+                            int roll12 = Compute.d6();
                             if (side == ToHitData.SIDE_FRONT) {
-                                roll -= 2;
+                                roll12 -= 2;
                             } else if (side == ToHitData.SIDE_REAR) {
-                                roll += 2;
+                                roll12 += 2;
                             }
-                            if (roll <= 3) {
+                            if (roll12 <= 3) {
                                 if (game.getOptions().booleanOption(
                                         OptionsConstants.ADVCOMBAT_VEHICLES_THRESHOLD)) {
                                     setPotCrit(HitData.EFFECT_CRITICAL);

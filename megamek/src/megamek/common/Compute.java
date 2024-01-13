@@ -188,9 +188,16 @@ public class Compute {
         return roll;
     }
 
+    //Manual dice input as Integer
     public static int manualD6(int dice, Entity entity, String rolldescription) {
     int result = DiceThrower.ThrowD6(dice, entity, rolldescription);
     return result;
+    }
+
+    //Manual D6 input as Roll
+    public static Roll manualRollD6(int dice, Entity entity, String rolldescription) {
+      Roll roll = DiceThrower.mRollD6(dice,entity,rolldescription);
+      return roll;
     }
 
     /**

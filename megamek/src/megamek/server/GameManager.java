@@ -15,6 +15,7 @@ package megamek.server;
 
 import megamek.MMConstants;
 import megamek.MegaMek;
+import megamek.client.Client;
 import megamek.client.bot.princess.BehaviorSettings;
 import megamek.client.ui.swing.GUIPreferences;
 import megamek.client.ui.swing.tooltip.UnitToolTip;
@@ -11972,6 +11973,7 @@ public class GameManager implements IGameManager {
      * @return true if check succeeds, false otherwise.
      */
     private boolean doSkillCheckInPlace(Entity entity, PilotingRollData roll) {
+      boolean manPsr = game.getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
         if (roll.getValue() == TargetRoll.AUTOMATIC_SUCCESS) {
             return true;
         }
@@ -11988,10 +11990,12 @@ public class GameManager implements IGameManager {
         addReport(r);
 
         // roll
-
-        //boolean manEntityPSR = entity.getCrew().getPSRoption();--TODO
-        boolean manPSR = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
-        final Roll diceRoll = (!manPSR)? entity.getCrew().rollPilotingSkill() : entity.getCrew().rollPilotingSkill(entity, roll.getDesc());
+        final Roll diceRoll;
+      if (!manPsr || entity.getOwner().isBot()) {
+        diceRoll = entity.getCrew().rollPilotingSkill();
+      } else {
+        diceRoll = entity.getCrew().rollPilotingSkill(entity, entity.getDisplayName()+" Piloting roll "+roll.getPlainDesc());
+      }
         r = new Report(2185);
         r.subject = entity.getId();
         r.add(roll.getValueAsString());
@@ -12107,6 +12111,7 @@ public class GameManager implements IGameManager {
     private int doSkillCheckWhileMoving(Entity entity, int entityElevation,
                                         Coords src, Coords dest, PilotingRollData roll, boolean isFallRoll) {
         boolean fallsInPlace;
+        boolean manPsr = game.getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
 
         // Start the info for this roll.
         Report r = new Report(1210);
@@ -12130,8 +12135,13 @@ public class GameManager implements IGameManager {
         addReport(r);
 
         // roll
-        boolean manPSR = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
-        final Roll diceRoll = (!manPSR)? entity.getCrew().rollPilotingSkill() : entity.getCrew().rollPilotingSkill(entity, roll.getDesc());
+        final Roll diceRoll;
+        if (!manPsr || entity.getOwner().isBot()) {
+          diceRoll = entity.getCrew().rollPilotingSkill();
+        } else {
+          diceRoll = entity.getCrew().rollPilotingSkill(entity, entity.getDisplayName()+" Piloting roll "+roll.getPlainDesc());
+        }
+
         r = new Report(2185);
         r.subject = entity.getId();
         r.add(roll.getValueAsString());
@@ -19110,7 +19120,13 @@ public class GameManager implements IGameManager {
                     int boom = (4 + (entity.heat >= 14 ? 2 : 0) + (entity.heat >= 19 ? 2 : 0)
                             + (entity.heat >= 23 ? 2 : 0) + (entity.heat >= 28 ? 2 : 0))
                             - hotDogMod;
-                    Roll diceRoll = Compute.rollD6(2);
+                    boolean manExplosion = game.getOptions().booleanOption(OptionsConstants.MAN_HEAT_AMMO_EXPLOSION);
+                    Roll diceRoll;
+                    if (!manExplosion || entity.getOwner().isBot()) {
+                      diceRoll = Compute.rollD6(2);
+                      } else {
+                      diceRoll = Compute.manualRollD6(2, entity, "Avoid ammo explosion on "+boom+"+"); //TODO - solve the tech officer bonus below into roll description
+                    }
                     int rollValue = diceRoll.getIntValue();
                     r = new Report(5040);
                     r.subject = entity.getId();
@@ -19181,7 +19197,13 @@ public class GameManager implements IGameManager {
                                         startup += 1;
                                 }
                             }
-                            Roll diceRoll = Compute.rollD6(2);
+                            Roll diceRoll;
+                            boolean manShutdown = game.getOptions().booleanOption(OptionsConstants.MAN_HEAT_SHUTDOWN);
+                            if (!manShutdown || entity.getOwner().isBot()){
+                              diceRoll = Compute.rollD6(2);
+                              } else {
+                              diceRoll = Compute.manualRollD6(2, entity, "Startup on "+startup+"+");
+                              }
                             r = new Report(5050);
                             r.subject = entity.getId();
                             r.addDesc(entity);
@@ -19255,7 +19277,13 @@ public class GameManager implements IGameManager {
                                     shutdown += 1;
                             }
                         }
-                        Roll diceRoll = Compute.rollD6(2);
+                      Roll diceRoll;
+                      boolean manShutdown = game.getOptions().booleanOption(OptionsConstants.MAN_HEAT_SHUTDOWN);
+                      if (!manShutdown || entity.getOwner().isBot()){
+                        diceRoll = Compute.rollD6(2);
+                      } else {
+                        diceRoll = Compute.manualRollD6(2, entity, "Avoid heat shutdown on "+shutdown+"+"); //TODO - tech officer below
+                      }
                         int rollValue = diceRoll.getIntValue();
                         r = new Report(5060);
                         r.subject = entity.getId();
@@ -19306,7 +19334,13 @@ public class GameManager implements IGameManager {
                 if (((Mech) entity).hasLaserHeatSinks()) {
                     boom--;
                 }
-                Roll diceRoll = Compute.rollD6(2);
+              Roll diceRoll;
+              boolean manExplosion = game.getOptions().booleanOption(OptionsConstants.MAN_HEAT_AMMO_EXPLOSION);
+              if (!manExplosion || entity.getOwner().isBot()){
+                diceRoll = Compute.rollD6(2);
+              } else {
+                diceRoll = Compute.manualRollD6(2, entity, "Avoid ammo explosion on "+boom+"+");
+              }
                 int rollValue = diceRoll.getIntValue();
                 r = new Report(5065);
                 r.subject = entity.getId();
@@ -19393,8 +19427,9 @@ public class GameManager implements IGameManager {
                     && !entity.getCrew().isDoomed()
                     && !entity.hasAbility(OptionsConstants.MD_PAIN_SHUNT)) {
                 // Crew may take damage from heat if MaxTech option is set
-                Roll diceRoll = Compute.rollD6(2);
+                boolean manPsr = game.getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
                 int avoidNumber;
+                Roll diceRoll;
                 if (entity.heat >= 47) {
                     avoidNumber = 12;
                 } else if (entity.heat >= 39) {
@@ -19407,6 +19442,12 @@ public class GameManager implements IGameManager {
                 r.subject = entity.getId();
                 r.addDesc(entity);
                 r.add(avoidNumber);
+                if (!manPsr || entity.getOwner().isBot()) {
+                  diceRoll = Compute.rollD6(2);
+                } else {
+                  diceRoll = Compute.manualRollD6(2, entity, "Avoid crew heat damage on "+avoidNumber+"+");
+                }
+
                 r.add(diceRoll);
 
                 if (diceRoll.getIntValue() >= avoidNumber) {
@@ -20601,9 +20642,16 @@ public class GameManager implements IGameManager {
                 entity.doCheckEngineStallRoll(vPhaseReport);
                 return vPhaseReport;
             }
-            boolean manPSR = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
-            Roll diceRoll = (!manPSR)? entity.getCrew().rollPilotingSkill() : entity.getCrew().rollPilotingSkill(entity, roll.getDesc());
-            r = new Report(2300);
+
+            boolean manPsr = game.getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
+            Roll diceRoll;
+            if (!manPsr || entity.getOwner().isBot()) {
+              diceRoll = entity.getCrew().rollPilotingSkill();
+            } else {
+              diceRoll = entity.getCrew().rollPilotingSkill(entity, entity.getDisplayName()+" Piloting check "+roll.getPlainDesc());
+            }
+
+            r = new Report(2299);
             r.add(roll);
             r.add(diceRoll);
             r.subject = entity.getId();
@@ -21200,7 +21248,13 @@ public class GameManager implements IGameManager {
                 if (edgeUsed) {
                     e.getCrew().decreaseEdge();
                 }
-                Roll diceRoll = Compute.rollD6(2);
+                Roll diceRoll;
+                boolean manConsciousness = game.getOptions().booleanOption(OptionsConstants.MAN_LOSE_CONSCIOUSNESS);
+                if (!manConsciousness || e.getOwner().isBot()) {
+                  diceRoll = Compute.rollD6(2);
+                } else {
+                  diceRoll = Compute.manualRollD6(2, e, "Avoid loosing consciousness on "+rollTarget+"+");
+                }
                 int rollValue = diceRoll.getIntValue();
                 String rollCalc = String.valueOf(rollValue);
 
@@ -21263,6 +21317,7 @@ public class GameManager implements IGameManager {
     private void resolveCrewWakeUp() {
         for (Iterator<Entity> i = game.getEntities(); i.hasNext(); ) {
             final Entity e = i.next();
+            boolean manWakeup = game.getOptions().booleanOption(OptionsConstants.MAN_LOSE_CONSCIOUSNESS);
 
             // only unconscious pilots of mechs and protos, ASF and Small Craft
             // and MechWarriors can roll to wake up
@@ -21275,7 +21330,14 @@ public class GameManager implements IGameManager {
                     }
                     if (e.getCrew().isUnconscious(pos)
                             && !e.getCrew().isKoThisRound(pos)) {
-                        Roll diceRoll = Compute.rollD6(2);
+                      Roll diceRoll;
+                      int rollTarget = Compute.getConsciousnessNumber(e.getCrew().getHits(pos));
+                        if (!manWakeup || e.getOwner().isBot()) {
+                          diceRoll = Compute.rollD6(2);
+                          } else {
+                          diceRoll = Compute.manualRollD6(2, e, "Wake up on "+rollTarget+"+");
+                          }
+
                         int rollValue = diceRoll.getIntValue();
                         String rollCalc = String.valueOf(rollValue);
 
@@ -28474,8 +28536,14 @@ public class GameManager implements IGameManager {
             reports.add(r);
             reports.addAll(damageCrew(entity, 1, crewPos));
         } else {
-            boolean manPSR = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
-            Roll diceRoll = (!manPSR)? entity.getCrew().rollPilotingSkill() : entity.getCrew().rollPilotingSkill(entity, "Avoid pilot damage on "+roll.getValue()+"+");
+            Roll diceRoll;
+            boolean manPsr = game.getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
+            if (!manPsr || entity.getOwner().isBot()) {
+              diceRoll = entity.getCrew().rollPilotingSkill();
+            } else {
+              diceRoll = entity.getCrew().rollPilotingSkill(entity, "Avoid Crew Damage on "+roll.getValue()+"+");
+            }
+
             r = new Report(2325);
             r.subject = entity.getId();
             r.add(entity.getCrew().getCrewType().getRoleName(crewPos));
@@ -32391,10 +32459,21 @@ public class GameManager implements IGameManager {
         int damage = 0;
         PhysicalResult pr = new PhysicalResult();
         ToHitData toHit = new ToHitData();
+        boolean manualPhysical = game.getOptions().booleanOption(OptionsConstants.MAN_PHYSICAL_ATTACK);
         if (aaa instanceof PhysicalAttackAction && ae.getCrew() != null) {
+          if (ae.getOwner().isBot() || !manualPhysical) {
             pr.roll = ae.getCrew().rollPilotingSkill();
+            }
+          else {
+            pr.roll = ae.getCrew().rollPilotingSkill(ae, ae.getDisplayName()+" "+aaa.toSummaryString(game));
+          }
         } else {
-            pr.roll = Compute.rollD6(2);
+            if (ae.getOwner().isBot() || !manualPhysical) {
+              pr.roll = Compute.rollD6(2);
+              }
+            else {
+              pr.roll = Compute.manualRollD6(2, ae, ae.getDisplayName()+" "+aaa.toSummaryString(game));
+            }
         }
         pr.aaa = aaa;
         if (aaa instanceof BrushOffAttackAction) {
@@ -32504,9 +32583,17 @@ public class GameManager implements IGameManager {
             pr.damageRight = damageRight;
             pr.toHitRight = toHitRight;
             if (ae.getCrew() != null) {
+              if (!manualPhysical || ae.getOwner().isBot()) {
                 pr.rollRight = ae.getCrew().rollPilotingSkill();
+              } else {
+                pr.rollRight = ae.getCrew().rollPilotingSkill(ae, ae.getDisplayName()+" "+aaa.toSummaryString(game));
+              }
             } else {
+              if (!manualPhysical || ae.getOwner().isBot()) {
                 pr.rollRight = Compute.rollD6(2);
+              } else {
+                pr.rollRight = Compute.manualRollD6(2, ae, ae.getDisplayName()+" "+aaa.toSummaryString(game));
+              }
             }
         } else if (aaa instanceof PushAttackAction) {
             PushAttackAction paa = (PushAttackAction) aaa;
@@ -32787,6 +32874,7 @@ public class GameManager implements IGameManager {
                                       boolean skin_of_the_teeth) {
         Vector<Report> vDesc = new Vector<>();
         Report r;
+        boolean manPsr = game.getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
 
         // An entity can only eject it's crew once.
         if (entity.getCrew().isEjected()) {
@@ -32833,8 +32921,13 @@ public class GameManager implements IGameManager {
                 rollTarget = getEjectModifiers(game, entity, crewPos,
                         autoEject);
                 // roll
-                boolean manPSR = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
-                final Roll diceRoll = (!manPSR)? entity.getCrew().rollPilotingSkill() : entity.getCrew().rollPilotingSkill(entity, rollTarget.getDesc());
+                final Roll diceRoll;
+                if (!manPsr || entity.getOwner().isBot()) {
+                  diceRoll = entity.getCrew().rollPilotingSkill();
+                } else {
+                  diceRoll = entity.getCrew().rollPilotingSkill(entity, entity.getDisplayName()+" Safe Ejection on "+rollTarget.getValue()+"+");
+                }
+
                 if (entity.getCrew().getSlotCount() > 1) {
                     r = new Report(2193);
                     r.add(entity.getCrew().getNameAndRole(crewPos));
@@ -33701,6 +33794,7 @@ public class GameManager implements IGameManager {
         }
 
         Report r;
+        boolean manPsr = game.getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
 
         Iterator<Entity> stuckEntities = game.getSelectedEntities(Entity::isStuck);
         PilotingRollData rollTarget;
@@ -33728,8 +33822,12 @@ public class GameManager implements IGameManager {
             addReport(r);
 
             // roll
-            boolean manPSR = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PILOTING);
-            final Roll diceRoll = (!manPSR)? entity.getCrew().rollPilotingSkill() : entity.getCrew().rollPilotingSkill(entity, "Unstuck on "+rollTarget.getValue()+"+");
+            final Roll diceRoll;
+            if (!manPsr || entity.getOwner().isBot()) {
+              diceRoll = entity.getCrew().rollPilotingSkill();
+            } else {
+             diceRoll = entity.getCrew().rollPilotingSkill(entity, entity.getDisplayName()+" Unstuck on "+rollTarget.getValue()+"+");
+            }
             r = new Report(2190);
             r.subject = entity.getId();
             r.add(rollTarget.getValueAsString());

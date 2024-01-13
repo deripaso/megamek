@@ -537,9 +537,7 @@ public class OptionsConstants {
   public static final String MAN_PUNCH_LOCATION = "punch";
   public static final String MAN_KICK_LOCATION = "kick";
   public static final String MAN_LOSE_CONSCIOUSNESS = "consciousness";
-  public static final String MAN_REGAIN_CONSCIOUSNESS = "wakeup";
   public static final String MAN_HEAT_SHUTDOWN = "heatshutdown";
-  public static final String MAN_HEAT_RESTART = "heatrestart";
   public static final String MAN_HEAT_AMMO_EXPLOSION = "heatexplosion";
   public static final String MAN_FACING_DIRECTION = "facing";
   public static final String MAN_SPOTLIGHT_HIT = "spotlight";

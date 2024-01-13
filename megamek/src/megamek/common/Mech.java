@@ -1940,7 +1940,7 @@ public abstract class Mech extends Entity {
 
         if ((aimedLocation != LOC_NONE) && !aimingMode.isNone()) {
           if (manualLocation & !this.getOwner().isBot()) {
-            roll = Compute.manualD6(2, this, "Hit Location");
+            roll = Compute.manualD6(2, this, this.getDisplayName()+" Hit Location");
           } else {
             roll = Compute.d6(2);
           }
@@ -1952,7 +1952,7 @@ public abstract class Mech extends Entity {
 
         if ((table == ToHitData.HIT_NORMAL) || (table == ToHitData.HIT_PARTIAL_COVER)) {
             if (manualLocation & !this.getOwner().isBot()) {
-              roll = Compute.manualD6(2, this, "Hit Location");
+              roll = Compute.manualD6(2, this, this.getDisplayName()+" Hit Location");
             } else {
               roll = Compute.d6(2);
             }
@@ -2213,7 +2213,7 @@ public abstract class Mech extends Entity {
         }
         if (table == ToHitData.HIT_PUNCH) {
             if (manualPunch & !this.getOwner().isBot()) {
-              roll = Compute.manualD6(1, this, "Punch Hit Location");
+              roll = Compute.manualD6(1, this, this.getDisplayName()+" Punch Hit Location");
               } else {
               roll = Compute.d6(1);
               }
@@ -2336,7 +2336,7 @@ public abstract class Mech extends Entity {
         }
         if (table == ToHitData.HIT_KICK) {
             if (manualKick & !this.getOwner().isBot()) {
-              roll = Compute.manualD6(1, this, "Kick Hit Location");
+              roll = Compute.manualD6(1, this, this.getDisplayName()+" Kick Hit Location");
               } else {
               roll = Compute.d6(1);
               }
@@ -2381,7 +2381,7 @@ public abstract class Mech extends Entity {
         if ((table == ToHitData.HIT_SWARM)
                 || (table == ToHitData.HIT_SWARM_CONVENTIONAL)) {
             if (manualLocation & !this.getOwner().isBot()) {
-              roll = Compute.manualD6(2, this, "Swarm Attack Location");
+              roll = Compute.manualD6(2, this, this.getDisplayName()+" Swarm Attack Location");
               } else {
               roll = Compute.d6(2);
               }
@@ -2449,7 +2449,7 @@ public abstract class Mech extends Entity {
         }
         if (table == ToHitData.HIT_ABOVE) {
             if (manualLocation & !this.getOwner().isBot()) {
-              roll = Compute.manualD6(1, this, "Hit from Above Location");
+              roll = Compute.manualD6(1, this, this.getDisplayName()+" Hit from Above Location");
             } else {
               roll = Compute.d6(1);
               }
@@ -2495,7 +2495,7 @@ public abstract class Mech extends Entity {
         }
         if (table == ToHitData.HIT_BELOW) {
             if (manualLocation & !this.getOwner().isBot()) {
-              roll = Compute.manualD6(1, this, "Hit from Below Location");
+              roll = Compute.manualD6(1, this, this.getDisplayName()+" Hit from Below Location");
             } else {
               roll = Compute.d6(1);
               }
