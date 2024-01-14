@@ -40,7 +40,7 @@ public class SRMTandemChargeHandler extends SRMHandler {
 
     /**
      * Handle damage against an entity, called once per hit by default.
-     * 
+     *
      * @param entityTarget
      * @param vPhaseReport
      * @param bldg
@@ -56,7 +56,7 @@ public class SRMTandemChargeHandler extends SRMHandler {
 
         HitData hit = entityTarget.rollHitLocation(toHit.getHitTable(),
                 toHit.getSideTable(), waa.getAimedLocation(),
-                waa.getAimingMode(), toHit.getCover());
+                waa.getAimingMode(), toHit.getCover(), waa.getEntityId());
         hit.setGeneralDamageType(generalDamageType);
         hit.setAttackerId(getAttackerId());
         if (entityTarget.removePartialCoverHits(hit.getLocation(), toHit
@@ -89,8 +89,8 @@ public class SRMTandemChargeHandler extends SRMHandler {
         // damage absorption by the partial cover, if it would have happened
         Hex targetHex = game.getBoard().getHex(target.getPosition());
         boolean targetStickingOutOfBuilding = unitStickingOutOfBuilding(targetHex, entityTarget);
-                
-        nDamage = absorbBuildingDamage(nDamage, entityTarget, bldgAbsorbs, 
+
+        nDamage = absorbBuildingDamage(nDamage, entityTarget, bldgAbsorbs,
                 vPhaseReport, bldg, targetStickingOutOfBuilding);
 
 
@@ -115,11 +115,11 @@ public class SRMTandemChargeHandler extends SRMHandler {
             if (bGlancing) {
                 hit.makeGlancingBlow();
             }
-            
+
             if (bLowProfileGlancing) {
                 hit.makeGlancingBlow();
             }
-            
+
             if (bDirect && !target.isConventionalInfantry()) {
                 hit.makeDirectBlow(toHit.getMoS() / 3);
             }

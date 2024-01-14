@@ -51,7 +51,7 @@ public class RifleWeaponHandler extends AmmoWeaponHandler {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see megamek.common.weapons.WeaponHandler#calcDamagePerHit()
      */
     @Override
@@ -73,7 +73,7 @@ public class RifleWeaponHandler extends AmmoWeaponHandler {
             te = (Entity) target;
             hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(),
                     waa.getAimedLocation(), waa.getAimingMode(),
-                    toHit.getCover());
+                    toHit.getCover(), waa.getEntityId());
             hit.setAttackerId(getAttackerId());
             if (!(te instanceof Infantry)
                     && (!te.hasBARArmor(hit.getLocation()) || (te.getBARRating(hit.getLocation()) >= 8))) {
@@ -144,8 +144,8 @@ public class RifleWeaponHandler extends AmmoWeaponHandler {
         // damage absorption by the partial cover, if it would have happened
         Hex targetHex = game.getBoard().getHex(target.getPosition());
         boolean targetStickingOutOfBuilding = unitStickingOutOfBuilding(targetHex, entityTarget);
-                
-        nDamage = absorbBuildingDamage(nDamage, entityTarget, bldgAbsorbs, 
+
+        nDamage = absorbBuildingDamage(nDamage, entityTarget, bldgAbsorbs,
                 vPhaseReport, bldg, targetStickingOutOfBuilding);
 
 
@@ -170,7 +170,7 @@ public class RifleWeaponHandler extends AmmoWeaponHandler {
             if (bGlancing) {
                 hit.makeGlancingBlow();
             }
-            
+
             if (bLowProfileGlancing) {
                 hit.makeGlancingBlow();
             }

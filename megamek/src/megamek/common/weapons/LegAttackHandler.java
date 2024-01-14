@@ -49,7 +49,7 @@ public class LegAttackHandler extends WeaponHandler {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see megamek.common.weapons.WeaponHandler#calcHits(java.util.Vector)
      */
     @Override
@@ -63,7 +63,7 @@ public class LegAttackHandler extends WeaponHandler {
             int bldgAbsorbs) {
         HitData hit = entityTarget.rollHitLocation(toHit.getHitTable(),
                 toHit.getSideTable(), waa.getAimedLocation(),
-                waa.getAimingMode(), toHit.getCover());
+                waa.getAimingMode(), toHit.getCover(), waa.getEntityId());
         hit.setAttackerId(getAttackerId());
         // If a leg attacks hit a leg that isn't
         // there, then hit the other leg.

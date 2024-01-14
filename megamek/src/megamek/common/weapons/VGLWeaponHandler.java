@@ -161,7 +161,7 @@ public class VGLWeaponHandler extends AmmoWeaponHandler {
 
                     hit = entTarget.rollHitLocation(toHit.getHitTable(),
                             toHit.getSideTable(), waa.getAimedLocation(),
-                            waa.getAimingMode(), toHit.getCover());
+                            waa.getAimingMode(), toHit.getCover(), waa.getEntityId());
                     hit.setAttackerId(getAttackerId());
 
                     Vector<Report> dmgReports = new Vector<>();

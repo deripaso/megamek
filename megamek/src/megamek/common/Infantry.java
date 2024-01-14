@@ -661,12 +661,12 @@ public class Infantry extends Entity {
     }
 
     @Override
-    public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode, int cover) {
-        return rollHitLocation(table, side);
+    public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode, int cover, int attackerId) {
+        return rollHitLocation(table, side, attackerId);
     }
 
     @Override
-    public HitData rollHitLocation(int table, int side) {
+    public HitData rollHitLocation(int table, int side, int attackerId) {
         return new HitData(LOC_INFANTRY);
     }
 

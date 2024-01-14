@@ -44,7 +44,7 @@ public class ACAPHandler extends ACWeaponHandler {
                                       Building bldg, int hits, int nCluster, int bldgAbsorbs) {
         AmmoType atype = (AmmoType) weapon.getLinked().getType();
         HitData hit = entityTarget.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(),
-                waa.getAimedLocation(), waa.getAimingMode(), toHit.getCover());
+                waa.getAimedLocation(), waa.getAimingMode(), toHit.getCover(), waa.getEntityId());
         hit.setGeneralDamageType(generalDamageType);
         hit.setAttackerId(getAttackerId());
         if (entityTarget.removePartialCoverHits(hit.getLocation(), toHit.getCover(),
@@ -82,7 +82,7 @@ public class ACAPHandler extends ACWeaponHandler {
         // damage absorption by the partial cover, if it would have already happened
         Hex targetHex = game.getBoard().getHex(target.getPosition());
         boolean targetStickingOutOfBuilding = unitStickingOutOfBuilding(targetHex, entityTarget);
-                
+
         nDamage = absorbBuildingDamage(nDamage, entityTarget, bldgAbsorbs, vPhaseReport, bldg,
                 targetStickingOutOfBuilding);
 

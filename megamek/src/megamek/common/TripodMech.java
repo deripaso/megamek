@@ -22,6 +22,7 @@ import java.util.List;
 import megamek.common.enums.AimingMode;
 import megamek.common.options.OptionsConstants;
 import megamek.common.preference.PreferenceManager;
+import megamek.server.Server;
 import org.apache.logging.log4j.LogManager;
 
 public class TripodMech extends Mech {
@@ -996,12 +997,20 @@ public class TripodMech extends Mech {
      */
     @Override
     public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode,
-                                   int cover) {
+                                   int cover, int attackerId) {
         int roll = -1;
+        boolean manualLocation = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_HIT_LOCATION);
+        boolean manualPunch = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PUNCH_LOCATION);
+        boolean manualKick = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_KICK_LOCATION);
+        String attackerName = game.getEntity(attackerId).getDisplayName();
 
         if ((aimedLocation != LOC_NONE) && !aimingMode.isNone()) {
 
+          if (manualLocation & !game.getEntity(attackerId).getOwner().isBot()) {
+            roll = Compute.manualD6(2, this, attackerName+"'s roll for "+this.getDisplayName()+" Hit Location");
+          } else {
             roll = Compute.d6(2);
+          }
 
             if ((5 < roll) && (roll < 9)) {
                 return new HitData(aimedLocation, side == ToHitData.SIDE_REAR, true);
@@ -1010,7 +1019,11 @@ public class TripodMech extends Mech {
 
         if ((table == ToHitData.HIT_NORMAL)
             || (table == ToHitData.HIT_PARTIAL_COVER)) {
-            roll = Compute.d6(2);
+            if (manualLocation & !game.getEntity(attackerId).getOwner().isBot()) {
+              roll = Compute.manualD6(2, this, attackerName+"'s roll for "+this.getDisplayName()+" Hit Location");
+            } else {
+              roll = Compute.d6(2);
+            }
             try {
                 PrintWriter pw = PreferenceManager.getClientPreferences()
                                                   .getMekHitLocLog();
@@ -1034,12 +1047,12 @@ public class TripodMech extends Mech {
                             && !game.getOptions().booleanOption(OptionsConstants.ADVCOMBAT_NO_TAC)) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                                             aimedLocation, aimingMode, cover);
+                                                             aimedLocation, aimingMode, cover, attackerId);
                             result.setUndoneLocation(tac(table, side,
-                                                         Mech.LOC_CT, cover, false));
+                                                         Mech.LOC_CT, cover, false, attackerId));
                             return result;
                         } // if
-                        return tac(table, side, Mech.LOC_CT, cover, false);
+                        return tac(table, side, Mech.LOC_CT, cover, false, attackerId);
                     case 3:
                     case 4:
                         return new HitData(Mech.LOC_RARM);
@@ -1068,7 +1081,7 @@ public class TripodMech extends Mech {
                                 "edge_when_headhit")) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                                             aimedLocation, aimingMode, cover);
+                                                             aimedLocation, aimingMode, cover, attackerId);
                             result.setUndoneLocation(new HitData(Mech.LOC_HEAD));
                             return result;
                         } // if
@@ -1083,12 +1096,12 @@ public class TripodMech extends Mech {
                             && !game.getOptions().booleanOption(OptionsConstants.ADVCOMBAT_NO_TAC)) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                                             aimedLocation, aimingMode, cover);
+                                                             aimedLocation, aimingMode, cover, attackerId);
                             result.setUndoneLocation(tac(table, side,
-                                                         Mech.LOC_LT, cover, false));
+                                                         Mech.LOC_LT, cover, false, attackerId));
                             return result;
                         } // if
-                        return tac(table, side, Mech.LOC_LT, cover, false);
+                        return tac(table, side, Mech.LOC_LT, cover, false, attackerId);
                     case 3:
                     case 6:
                     case 11:
@@ -1125,7 +1138,7 @@ public class TripodMech extends Mech {
                                 "edge_when_headhit")) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                                             aimedLocation, aimingMode, cover);
+                                                             aimedLocation, aimingMode, cover, attackerId);
                             result.setUndoneLocation(new HitData(Mech.LOC_HEAD));
                             return result;
                         } // if
@@ -1140,12 +1153,12 @@ public class TripodMech extends Mech {
                             && !game.getOptions().booleanOption(OptionsConstants.ADVCOMBAT_NO_TAC)) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                                             aimedLocation, aimingMode, cover);
+                                                             aimedLocation, aimingMode, cover, attackerId);
                             result.setUndoneLocation(tac(table, side,
-                                                         Mech.LOC_RT, cover, false));
+                                                         Mech.LOC_RT, cover, false, attackerId));
                             return result;
                         } // if
-                        return tac(table, side, Mech.LOC_RT, cover, false);
+                        return tac(table, side, Mech.LOC_RT, cover, false, attackerId);
                     case 3:
                     case 6:
                     case 11:
@@ -1182,7 +1195,7 @@ public class TripodMech extends Mech {
                                 "edge_when_headhit")) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                                             aimedLocation, aimingMode, cover);
+                                                             aimedLocation, aimingMode, cover, attackerId);
                             result.setUndoneLocation(new HitData(Mech.LOC_HEAD));
                             return result;
                         } // if
@@ -1202,12 +1215,12 @@ public class TripodMech extends Mech {
                                     OptionsConstants.ADVCOMBAT_NO_TAC)) {
                                 getCrew().decreaseEdge();
                                 HitData result = rollHitLocation(table, side,
-                                                                 aimedLocation, aimingMode, cover);
+                                                                 aimedLocation, aimingMode, cover, attackerId);
                                 result.setUndoneLocation(tac(table, side,
-                                                             Mech.LOC_CT, cover, true));
+                                                             Mech.LOC_CT, cover, true, attackerId));
                                 return result;
                             } // if
-                            return tac(table, side, Mech.LOC_CT, cover, true);
+                            return tac(table, side, Mech.LOC_CT, cover, true, attackerId);
                         case 3:
                             return new HitData(Mech.LOC_RARM, true);
                         case 4:
@@ -1236,7 +1249,7 @@ public class TripodMech extends Mech {
                                     "edge_when_headhit")) {
                                 getCrew().decreaseEdge();
                                 HitData result = rollHitLocation(table, side,
-                                                                 aimedLocation, aimingMode, cover);
+                                                                 aimedLocation, aimingMode, cover, attackerId);
                                 result.setUndoneLocation(new HitData(
                                         Mech.LOC_HEAD, true));
                                 return result;
@@ -1253,12 +1266,12 @@ public class TripodMech extends Mech {
                                     OptionsConstants.ADVCOMBAT_NO_TAC)) {
                                 getCrew().decreaseEdge();
                                 HitData result = rollHitLocation(table, side,
-                                                                 aimedLocation, aimingMode, cover);
+                                                                 aimedLocation, aimingMode, cover, attackerId);
                                 result.setUndoneLocation(tac(table, side,
-                                                             Mech.LOC_CT, cover, true));
+                                                             Mech.LOC_CT, cover, true, attackerId));
                                 return result;
                             } // if
-                            return tac(table, side, Mech.LOC_CT, cover, true);
+                            return tac(table, side, Mech.LOC_CT, cover, true, attackerId);
                         case 3:
                         case 4:
                             return new HitData(Mech.LOC_RARM, true);
@@ -1287,7 +1300,7 @@ public class TripodMech extends Mech {
                                     "edge_when_headhit")) {
                                 getCrew().decreaseEdge();
                                 HitData result = rollHitLocation(table, side,
-                                                                 aimedLocation, aimingMode, cover);
+                                                                 aimedLocation, aimingMode, cover, attackerId);
                                 result.setUndoneLocation(new HitData(
                                         Mech.LOC_HEAD, true));
                                 return result;
@@ -1298,7 +1311,11 @@ public class TripodMech extends Mech {
             }
         }
         if (table == ToHitData.HIT_PUNCH) {
+          if (manualPunch & !game.getEntity(attackerId).getOwner().isBot()) {
+            roll = Compute.manualD6(1, this, attackerName+"'s roll for "+this.getDisplayName()+" Punch Hit Location");
+          } else {
             roll = Compute.d6(1);
+          }
             try {
                 PrintWriter pw = PreferenceManager.getClientPreferences()
                                                   .getMekHitLocLog();
@@ -1332,7 +1349,7 @@ public class TripodMech extends Mech {
                                 "edge_when_headhit")) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                                             aimedLocation, aimingMode, cover);
+                                                             aimedLocation, aimingMode, cover, attackerId);
                             result.setUndoneLocation(new HitData(Mech.LOC_HEAD));
                             return result;
                         } // if
@@ -1356,7 +1373,7 @@ public class TripodMech extends Mech {
                                 "edge_when_headhit")) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                                             aimedLocation, aimingMode, cover);
+                                                             aimedLocation, aimingMode, cover, attackerId);
                             result.setUndoneLocation(new HitData(Mech.LOC_HEAD));
                             return result;
                         } // if
@@ -1380,7 +1397,7 @@ public class TripodMech extends Mech {
                                 "edge_when_headhit")) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                                             aimedLocation, aimingMode, cover);
+                                                             aimedLocation, aimingMode, cover, attackerId);
                             result.setUndoneLocation(new HitData(Mech.LOC_HEAD));
                             return result;
                         } // if
@@ -1406,7 +1423,7 @@ public class TripodMech extends Mech {
                                 "edge_when_headhit")) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                                             aimedLocation, aimingMode, cover);
+                                                             aimedLocation, aimingMode, cover, attackerId);
                             result.setUndoneLocation(new HitData(Mech.LOC_HEAD,
                                                                  true));
                             return result;
@@ -1416,7 +1433,11 @@ public class TripodMech extends Mech {
             }
         }
         if (table == ToHitData.HIT_KICK) {
+          if (manualKick & !game.getEntity(attackerId).getOwner().isBot()) {
+            roll = Compute.manualD6(1, this, attackerName+"'s roll for "+this.getDisplayName()+" Kick Hit Location");
+          } else {
             roll = Compute.d6(1);
+          }
             try {
                 PrintWriter pw = PreferenceManager.getClientPreferences()
                                                   .getMekHitLocLog();
@@ -1468,7 +1489,11 @@ public class TripodMech extends Mech {
         }
         if ((table == ToHitData.HIT_SWARM)
             || (table == ToHitData.HIT_SWARM_CONVENTIONAL)) {
+          if (manualLocation & !game.getEntity(attackerId).getOwner().isBot()) {
+            roll = Compute.manualD6(2, this, attackerName+"'s roll for "+this.getDisplayName()+" Swarm Attack Location");
+          } else {
             roll = Compute.d6(2);
+          }
             int effects;
             if (table == ToHitData.HIT_SWARM_CONVENTIONAL) {
                 effects = HitData.EFFECT_NONE;
@@ -1496,7 +1521,7 @@ public class TripodMech extends Mech {
                             "edge_when_headhit")) {
                         getCrew().decreaseEdge();
                         HitData result = rollHitLocation(table, side,
-                                                         aimedLocation, aimingMode, cover);
+                                                         aimedLocation, aimingMode, cover, attackerId);
                         result.setUndoneLocation(new HitData(Mech.LOC_HEAD,
                                                              false, effects));
                         return result;
@@ -1526,7 +1551,7 @@ public class TripodMech extends Mech {
                             "edge_when_headhit")) {
                         getCrew().decreaseEdge();
                         HitData result = rollHitLocation(table, side,
-                                                         aimedLocation, aimingMode, cover);
+                                                         aimedLocation, aimingMode, cover, attackerId);
                         result.setUndoneLocation(new HitData(Mech.LOC_HEAD,
                                                              false, effects));
                         return result;
@@ -1535,7 +1560,11 @@ public class TripodMech extends Mech {
             }
         }
         if (table == ToHitData.HIT_ABOVE) {
+          if (manualLocation & !game.getEntity(attackerId).getOwner().isBot()) {
+            roll = Compute.manualD6(1, this, attackerName+"'s roll for "+this.getDisplayName()+" Hit from Above Location");
+          } else {
             roll = Compute.d6(1);
+          }
             try {
                 PrintWriter pw = PreferenceManager.getClientPreferences()
                                                   .getMekHitLocLog();
@@ -1567,7 +1596,7 @@ public class TripodMech extends Mech {
                             "edge_when_headhit")) {
                         getCrew().decreaseEdge();
                         HitData result = rollHitLocation(table, side,
-                                                         aimedLocation, aimingMode, cover);
+                                                         aimedLocation, aimingMode, cover, attackerId);
                         result.setUndoneLocation(new HitData(Mech.LOC_HEAD,
                                                              (side == ToHitData.SIDE_REAR)));
                         return result;
@@ -1577,7 +1606,11 @@ public class TripodMech extends Mech {
             }
         }
         if (table == ToHitData.HIT_BELOW) {
+          if (manualLocation & !game.getEntity(attackerId).getOwner().isBot()) {
+            roll = Compute.manualD6(1, this, attackerName+"'s roll for "+this.getDisplayName()+" Hit from Below Location");
+          } else {
             roll = Compute.d6(1);
+          }
             try {
                 PrintWriter pw = PreferenceManager.getClientPreferences()
                                                   .getMekHitLocLog();

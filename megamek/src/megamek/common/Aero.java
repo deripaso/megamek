@@ -1138,12 +1138,12 @@ public abstract class Aero extends Entity implements IAero, IBomber {
      */
     @Override
     public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode,
-                                   int cover) {
-        return rollHitLocation(table, side);
+                                   int cover, int attackerId) {
+        return rollHitLocation(table, side, attackerId);
     }
 
     @Override
-    public HitData rollHitLocation(int table, int side) {
+    public HitData rollHitLocation(int table, int side, int attackerId) {
 
         /*
          * Unlike other units, ASFs determine potential crits based on the

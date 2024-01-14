@@ -83,7 +83,7 @@ public class SuperHeavyTank extends Tank {
 
     @Override
     public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode,
-                                   int cover) {
+                                   int cover, int attackerId) {
         int nArmorLoc = LOC_FRONT;
         boolean bSide = false;
         boolean bRearSide = false;
@@ -353,7 +353,7 @@ public class SuperHeavyTank extends Tank {
         final Mounted mounted = getEquipment(wn);
 
         // B-Pods need to be special-cased, the have 360 firing arc
-        if ((mounted.getType() instanceof WeaponType) 
+        if ((mounted.getType() instanceof WeaponType)
                 && mounted.getType().hasFlag(WeaponType.F_B_POD)) {
             return Compute.ARC_360;
         }
@@ -461,7 +461,7 @@ public class SuperHeavyTank extends Tank {
 
         return false;
     }
-    
+
     @Override
     public long getEntityType() {
         return Entity.ETYPE_TANK | Entity.ETYPE_SUPER_HEAVY_TANK;

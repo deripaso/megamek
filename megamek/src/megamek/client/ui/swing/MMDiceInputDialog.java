@@ -25,15 +25,18 @@ public class MMDiceInputDialog  {
     public DiceInputDialog(JFrame owner, String title, String rolldescription, int dice) {
       super(owner, title, true, true);
       numDice = dice;
-      throwResult = dice; // TODO - this is a workaround for "Window Close Action", make a better one
+      throwResult = dice; // TODO - this is a workaround for "Window Close Action", make a better one (confirm dialog probably)
       setTitle(title);
       //private JFrame dialogFrame = owner;
-      JPanel panButtons = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-      add(panButtons, BorderLayout.PAGE_END);
+      JPanel panButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
+      add(panButtons, BorderLayout.PAGE_START);
       t = new JTextField(4);
-      JTextField tt = new JTextField(12);
+      JTextArea tt = new JTextArea();
       tt.setEditable(false);
+      tt.setLineWrap(true);
+      tt.setWrapStyleWord(true);
       tt.setText(rolldescription);
+      tt.setBounds(100,100,450,600);
       t.addActionListener(e -> parseThrow(numDice));
       JButton butOK = new DialogButton(Messages.getString("Send"));
       panButtons.add(butOK);
@@ -41,13 +44,16 @@ public class MMDiceInputDialog  {
       panButtons.add(t);
       panButtons.add(tt);
       Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-      owner.setLocation((screenSize.width - getSize().width) / 2, (screenSize.height - getSize().height) / 2);
-      owner.setSize(600,200);
-      t.requestFocusInWindow(); //TODO - test
-      setVisible(true);
-      t.requestFocus();
+      owner.setSize(600,800);
+      owner.setLocation((screenSize.width - getSize().width) / 4, (screenSize.height - getSize().height) / 4);
 
-      //getRootPane().setDefaultButton(butOK);//TODO - test
+      addWindowListener( new WindowAdapter() {
+        public void windowOpened( WindowEvent e ){ //TODO - more research on swing behavior
+          t.requestFocusInWindow();
+        }
+      } );
+      setVisible(true);
+
       addKeyListener(k);
       butOK.addKeyListener(k);
     }
@@ -55,7 +61,7 @@ public class MMDiceInputDialog  {
 
     private void parseThrow(int numDice) {
       int result = Integer.parseInt(t.getText());
-      if(result >= (numDice) && result <= (6*numDice)) { //TODO - test
+      if(result >= (numDice) && result <= (6*numDice)) {
         throwResult = result;
         setVisible(false);
       }

@@ -37,20 +37,20 @@ public class GunEmplacement extends Tank {
     private static final int[] CRITICAL_SLOTS = new int[] { 0 };
     private static final String[] LOCATION_ABBRS = { "GUN" };
     private static final String[] LOCATION_NAMES = { "GUNS" };
-        
+
     private static final TechAdvancement TA_GUN_EMPLACEMENT = new TechAdvancement(TECH_BASE_ALL)
             .setAdvancement(DATE_PS, DATE_PS, DATE_PS)
             .setTechRating(RATING_B).setAvailability(RATING_A, RATING_A, RATING_A, RATING_A)
             .setStaticTechLevel(SimpleTechLevel.INTRO);
-    
+
     public static final TechAdvancement TA_LIGHT_BUILDING = new TechAdvancement(TECH_BASE_ALL)
             .setAdvancement(DATE_PS, DATE_PS, DATE_PS)
             .setTechRating(RATING_A).setAvailability(RATING_A, RATING_A, RATING_A, RATING_A)
             .setStaticTechLevel(SimpleTechLevel.INTRO);
-    
+
     private int initialBuildingCF;
     private int initialBuildingArmor;
-    
+
     @Override
     public TechAdvancement getConstructionTechAdvancement() {
         return TA_GUN_EMPLACEMENT;
@@ -75,7 +75,7 @@ public class GunEmplacement extends Tank {
     public boolean isImmobile() {
         return true;
     }
-    
+
     /**
      * Our gun emplacements do not support dual turrets at this time
      */
@@ -314,13 +314,13 @@ public class GunEmplacement extends Tank {
     public long getEntityType() {
         return Entity.ETYPE_TANK | Entity.ETYPE_GUN_EMPLACEMENT;
     }
-    
+
     @Override
     public boolean hasEngine() {
         // TODO: Power generators and energy grid setup
         return false;
     }
-    
+
     @Override
     public int getArmorType(int loc) {
         // this is a hack to get around the fact that gun emplacements don't even have armor
@@ -331,14 +331,14 @@ public class GunEmplacement extends Tank {
     public int getArmorTechLevel(int loc) {
         return TechConstants.T_INTRO_BOXSET;
     }
-    
+
     @Override
     public boolean hasStealth() {
         return false;
     }
-    
+
     /**
-     * Sets the deployed flag. 
+     * Sets the deployed flag.
      * Has the side effect of initializing building CF if deployed
      */
     @Override
@@ -346,37 +346,37 @@ public class GunEmplacement extends Tank {
         super.setDeployed(deployed);
 
         // very aggressive null defense
-        if (deployed && (getGame() != null) && (getGame().getBoard() != null) && 
+        if (deployed && (getGame() != null) && (getGame().getBoard() != null) &&
                 (getPosition() != null)) {
             Building occupiedStructure = getGame().getBoard().getBuildingAt(getPosition());
-            
+
             if (occupiedStructure != null) {
                 initialBuildingCF = occupiedStructure.getCurrentCF(getPosition());
                 initialBuildingArmor = occupiedStructure.getArmor(getPosition());
                 return;
             }
-        }        
-        
+        }
+
         initialBuildingCF = initialBuildingArmor = 0;
     }
-    
+
     @Override
     public double getArmorRemainingPercent() {
         if (getPosition() == null) {
             return 1.0;
         }
-        
+
         Building occupiedStructure = getGame().getBoard().getBuildingAt(getPosition());
-        
+
         // we'll consider undeployed emplacements to be fully intact
         if ((occupiedStructure == null) || (initialBuildingCF + initialBuildingArmor == 0)) {
             return 1.0;
         }
-        
+
         return (occupiedStructure.getCurrentCF(getPosition()) + occupiedStructure.getArmor(getPosition()))
                 / ((double) (initialBuildingCF + initialBuildingArmor));
     }
-    
+
     /**
      * Gun emplacements don't have critical slots per se, so we
      * simply return 1 if the piece of equipment has been hit and 0 otherwise.
@@ -386,12 +386,12 @@ public class GunEmplacement extends Tank {
         Mounted m;
         if (type == CriticalSlot.TYPE_EQUIPMENT) {
             m = getEquipment(index);
-            
+
             if (m != null && m.isHit()) {
                 return 1;
             }
         }
-        
+
         return 0;
     }
 }
