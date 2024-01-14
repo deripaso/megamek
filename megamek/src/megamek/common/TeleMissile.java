@@ -38,7 +38,7 @@ public class TeleMissile extends Aero {
     // need another type of boolean for out-of-control status that indicates
     // lack of contact with originating unit
     private boolean outContact = false;
-    
+
     public TeleMissile() {
         super();
         damThresh = new int[] { 0 };
@@ -96,7 +96,7 @@ public class TeleMissile extends Aero {
     }
 
     @Override
-    public HitData rollHitLocation(int table, int side) {
+    public HitData rollHitLocation(int table, int side, int attackerId) {
         return new HitData(LOC_BODY, false, HitData.EFFECT_NONE);
     }
 
@@ -211,7 +211,7 @@ public class TeleMissile extends Aero {
     public int locations() {
         return 1;
     }
-    
+
     @Override
     public boolean canRam() {
         return false;

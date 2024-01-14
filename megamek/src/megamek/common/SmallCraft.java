@@ -326,7 +326,7 @@ public class SmallCraft extends Aero {
 
     // what is different - hit table is about it
     @Override
-    public HitData rollHitLocation(int table, int side) {
+    public HitData rollHitLocation(int table, int side, int attackerId) {
 
         /*
          * Unlike other units, ASFs determine potential crits based on the to-hit roll

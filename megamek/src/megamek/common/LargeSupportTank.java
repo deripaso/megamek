@@ -40,7 +40,7 @@ public class LargeSupportTank extends SupportTank {
     public static final int LOC_REAR = 6;
     public static final int LOC_TURRET = 7;
     public static final int LOC_TURRET_2 = 8;
-    
+
     private double fuelTonnage = 0;
 
     private static final String[] LOCATION_ABBRS = { "BD", "FR", "FRRS", "FRLS",
@@ -48,14 +48,14 @@ public class LargeSupportTank extends SupportTank {
 
     private static final String[] LOCATION_NAMES = { "Body", "Front", "Front Right",
             "Front Left", "Rear Right", "Rear Left", "Rear", "Turret"};
-    
+
     private static final String[] LOCATION_NAMES_DUAL_TURRET = { "Body", "Front", "Front Right",
             "Front Left", "Rear Right", "Rear Left", "Rear", "Rear Turret",
             "Front Turret" };
 
     // tanks have no critical slot limitations
     private static final int[] NUM_OF_SLOTS = { 25, 25, 25, 25, 25, 25, 25, 25 };
-    
+
     @Override
     public String[] getLocationAbbrs() {
         return LOCATION_ABBRS;
@@ -82,7 +82,7 @@ public class LargeSupportTank extends SupportTank {
 
     @Override
     public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode,
-                                   int cover) {
+                                   int cover, int attackerId) {
         int nArmorLoc = LOC_FRONT;
         boolean bSide = false;
         boolean bRearSide = false;
@@ -258,7 +258,7 @@ public class LargeSupportTank extends SupportTank {
     public int height() {
         return 1;
     }
-    
+
     @Override
     public boolean isSuperHeavy() {
         return true;

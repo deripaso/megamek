@@ -1,14 +1,14 @@
 /**
  * MegaMek - Copyright (C) 2005 Ben Mazur (bmazur@sev.org)
- * 
- *  This program is free software; you can redistribute it and/or modify it 
- *  under the terms of the GNU General Public License as published by the Free 
- *  Software Foundation; either version 2 of the License, or (at your option) 
+ *
+ *  This program is free software; you can redistribute it and/or modify it
+ *  under the terms of the GNU General Public License as published by the Free
+ *  Software Foundation; either version 2 of the License, or (at your option)
  *  any later version.
- * 
- *  This program is distributed in the hope that it will be useful, but 
- *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- *  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ *  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  *  for more details.
  */
 package megamek.common.weapons;
@@ -34,7 +34,7 @@ import megamek.server.Server;
 public class ScreenLauncherHandler extends AmmoWeaponHandler {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -2536312899803153911L;
 
@@ -51,7 +51,7 @@ public class ScreenLauncherHandler extends AmmoWeaponHandler {
 
     /**
      * handle this weapons firing
-     * 
+     *
      * @return a <code>boolean</code> value indicating wether this should be
      *         kept or not
      */
@@ -104,7 +104,7 @@ public class ScreenLauncherHandler extends AmmoWeaponHandler {
                     ent -> {
                         ToHitData squadronToHit = new ToHitData();
                         squadronToHit.setHitTable(ToHitData.HIT_NORMAL);
-                        HitData hit = ent.rollHitLocation(squadronToHit.getHitTable(), ToHitData.SIDE_FRONT);
+                        HitData hit = ent.rollHitLocation(squadronToHit.getHitTable(), ToHitData.SIDE_FRONT, ent.getId());
                         hit.setCapital(false);
                         vPhaseReport.addAll(gameManager.damageEntity(ent, hit, attackValue));
                         gameManager.creditKill(ent, ae);
@@ -112,7 +112,7 @@ public class ScreenLauncherHandler extends AmmoWeaponHandler {
             } else {
                 ToHitData hexToHit = new ToHitData();
                 hexToHit.setHitTable(ToHitData.HIT_NORMAL);
-                HitData hit = entity.rollHitLocation(hexToHit.getHitTable(), ToHitData.SIDE_FRONT);
+                HitData hit = entity.rollHitLocation(hexToHit.getHitTable(), ToHitData.SIDE_FRONT,entity.getId());
                 hit.setCapital(false);
                 vPhaseReport.addAll(gameManager.damageEntity(entity, hit, attackValue));
                 gameManager.creditKill(entity, ae);

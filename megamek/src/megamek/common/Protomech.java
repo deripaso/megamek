@@ -622,13 +622,13 @@ public class Protomech extends Entity {
      * Rolls up a hit location
      */
     @Override
-    public HitData rollHitLocation(int table, int side) {
-        return rollHitLocation(table, side, LOC_NONE, AimingMode.NONE, LosEffects.COVER_NONE);
+    public HitData rollHitLocation(int table, int side, int attackerId) {
+        return rollHitLocation(table, side, LOC_NONE, AimingMode.NONE, LosEffects.COVER_NONE, attackerId);
     }
 
     @Override
     public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode,
-                                   int cover) {
+                                   int cover, int attackerId) {
         int roll = -1;
 
         if ((aimedLocation != LOC_NONE) && aimingMode.isImmobile()) {

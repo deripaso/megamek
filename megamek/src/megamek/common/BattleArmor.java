@@ -588,8 +588,8 @@ public class BattleArmor extends Infantry {
      */
     @Override
     public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode,
-                                   int cover) {
-        return rollHitLocation(side, aimedLocation, aimingMode, false);
+                                   int cover, int attackerId) {
+        return rollHitLocation(side, aimedLocation, aimingMode, false, attackerId);
     }
 
     /**
@@ -598,7 +598,7 @@ public class BattleArmor extends Infantry {
      * @param isAttackingConvInfantry Set to true when attacked by CI, as these cannot score TacOps crits
      */
     public HitData rollHitLocation(int side, int aimedLocation, AimingMode aimingMode,
-                                   boolean isAttackingConvInfantry) {
+                                   boolean isAttackingConvInfantry, int attackerId) {
         // If this squad was killed, target trooper 1 (just because).
         if (isDoomed()) {
             return new HitData(1);
@@ -636,8 +636,8 @@ public class BattleArmor extends Infantry {
     }
 
     @Override
-    public HitData rollHitLocation(int table, int side) {
-        return rollHitLocation(table, side, LOC_NONE, AimingMode.NONE, LosEffects.COVER_NONE);
+    public HitData rollHitLocation(int table, int side, int attackerId) {
+        return rollHitLocation(table, side, LOC_NONE, AimingMode.NONE, LosEffects.COVER_NONE, attackerId);
     }
 
     /**
@@ -717,7 +717,7 @@ public class BattleArmor extends Infantry {
             }
         }
         // otherwise roll a random location
-        return rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+        return rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, this.id); //TODO - check
     }
 
     /**

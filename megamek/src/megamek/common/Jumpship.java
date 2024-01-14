@@ -37,13 +37,13 @@ public class Jumpship extends Aero {
     public static final int GRAV_DECK_STANDARD_MAX = 100;
     public static final int GRAV_DECK_LARGE_MAX = 250;
     public static final int GRAV_DECK_HUGE_MAX = 1500;
-    
+
     public static final int DRIVE_CORE_STANDARD    = 0;
     public static final int DRIVE_CORE_COMPACT     = 1;
     public static final int DRIVE_CORE_SUBCOMPACT  = 2;
     public static final int DRIVE_CORE_NONE        = 3;
     public static final int DRIVE_CORE_PRIMITIVE   = 4;
-    
+
     // The percentage of the total unit weight taken up by the drive core. The value
     // given for primitive assumes a 30ly range, but the final value has to be computed.
     private static final double[] DRIVE_CORE_WEIGHT_PCT = { 0.95, 0.4525, 0.5, 0.0, 0.95 };
@@ -67,7 +67,7 @@ public class Jumpship extends Aero {
     private boolean sail = true;
     private int driveCoreType = DRIVE_CORE_STANDARD;
     private int jumpRange = 30; // Primitive JumpShips can have a reduced range
-    
+
     // lithium fusion
     boolean hasLF = false;
 
@@ -76,7 +76,7 @@ public class Jumpship extends Aero {
     private int nOtherCrew = 0;
     private int nOfficers = 0;
     private int nGunners = 0;
-    
+
     // lifeboats and escape pods
     private int lifeBoats = 0;
     private int escapePods = 0;
@@ -94,7 +94,7 @@ public class Jumpship extends Aero {
      * deck.
      */
     private final List<Integer> gravDecks = new ArrayList<>();
-    
+
     /**
      * Keep track of all of the grav decks and their damage status
      *
@@ -126,14 +126,14 @@ public class Jumpship extends Aero {
     // ASEW Missile Effects, per location
     // Values correspond to Locations: NOS, FLS, FRS, AFT, ALS, ARS
     private final int[] asewAffectedTurns = { 0, 0, 0, 0, 0, 0 };
-    
+
     /*
      * Accessor for the asewAffectedTurns array, which may be different for inheriting classes.
      */
     protected int[] getAsewAffectedTurns() {
         return asewAffectedTurns;
     }
-    
+
     /*
      * Sets the number of rounds a specified firing arc is affected by an ASEW missile
      * @param arc - integer representing the desired firing arc
@@ -145,7 +145,7 @@ public class Jumpship extends Aero {
             getAsewAffectedTurns()[arc] = turns;
         }
     }
-    
+
     /*
      * Returns the number of rounds a specified firing arc is affected by an ASEW missile
      * @param arc - integer representing the desired firing arc
@@ -156,7 +156,7 @@ public class Jumpship extends Aero {
         }
         return 0;
     }
-    
+
     /**
      * Primitive JumpShips may be constructed with standard docking collars, or with pre-boom collars.
      */
@@ -174,12 +174,12 @@ public class Jumpship extends Aero {
             .setProductionFactions(F_TA).setTechRating(RATING_D)
             .setAvailability(RATING_D, RATING_X, RATING_X, RATING_X)
             .setStaticTechLevel(SimpleTechLevel.ADVANCED);
-    
+
     @Override
     public TechAdvancement getConstructionTechAdvancement() {
         return isPrimitive() ? TA_JUMPSHIP_PRIMITIVE : TA_JUMPSHIP;
     }
-    
+
     /**
      * Tech advancement data for lithium fusion batteries
      */
@@ -193,7 +193,7 @@ public class Jumpship extends Aero {
                 .setAvailability(RATING_E, RATING_F, RATING_E, RATING_E)
                 .setStaticTechLevel(SimpleTechLevel.ADVANCED);
     }
-    
+
     /**
      * Tech advancement data for the jump sail
      */
@@ -205,7 +205,7 @@ public class Jumpship extends Aero {
                 .setAvailability(RATING_E, RATING_E, RATING_D, RATING_D)
                 .setStaticTechLevel(SimpleTechLevel.ADVANCED);
     }
-    
+
     /**
      * @return Returns the autoEject setting (always off for large craft)
      */
@@ -280,7 +280,7 @@ public class Jumpship extends Aero {
     public CrewType defaultCrewType() {
         return CrewType.VESSEL;
     }
-    
+
     @Override
     public int locations() {
         return 7;
@@ -290,7 +290,7 @@ public class Jumpship extends Aero {
     public int getBodyLocation() {
         return LOC_HULL;
     }
-    
+
     /**
      * Get the docking collar type used by the ship.
      *
@@ -299,12 +299,12 @@ public class Jumpship extends Aero {
     public int getDockingCollarType() {
         return (isPrimitive() ? Jumpship.COLLAR_NO_BOOM : Jumpship.COLLAR_STANDARD);
     }
-    
+
     /** Returns the number of free Docking Collars. */
     public int getFreeDockingCollars() {
         return getDockingCollars().stream().mapToInt(dc -> (int) dc.getUnused()).sum();
     }
-    
+
     /**
      * Get the number of damaged docking collars on the ship.
      * Used by crit damage string on unit display
@@ -329,7 +329,7 @@ public class Jumpship extends Aero {
     public int getTotalGravDeck() {
         return gravDecks.size();
     }
-    
+
     /**
      * Get the number of damaged grav decks on the ship.
      * Used by JS/WS MapSet widget to display critical hits
@@ -363,7 +363,7 @@ public class Jumpship extends Aero {
     public List<Integer> getGravDecks() {
         return gravDecks;
     }
-    
+
     /**
      * Adds a grav deck damage value that maps to the index of each deck size in meters
      *
@@ -380,7 +380,7 @@ public class Jumpship extends Aero {
     public int getGravDeckDamageFlag(int key) {
         return damagedGravDecks.get(key);
     }
-    
+
     /**
      * Sets the damage flag for the grav deck with the specified key to the specified value
      *
@@ -499,7 +499,7 @@ public class Jumpship extends Aero {
     public int getEscapePods() {
         return escapePods;
     }
-    
+
     /**
      * Returns the total number of escape pods launched so far
      */
@@ -507,7 +507,7 @@ public class Jumpship extends Aero {
     public int getLaunchedEscapePods() {
         return escapePodsLaunched;
     }
-    
+
     /**
      * Updates the total number of escape pods launched so far
      * @param n The number to change
@@ -525,7 +525,7 @@ public class Jumpship extends Aero {
     public int getLifeBoats() {
         return lifeBoats;
     }
-    
+
     /**
      * Returns the total number of life boats launched so far
      */
@@ -533,7 +533,7 @@ public class Jumpship extends Aero {
     public int getLaunchedLifeBoats() {
         return lifeBoatsLaunched;
     }
-    
+
     /**
      * Updates the total number of life boats launched so far
      * @param n The number to change
@@ -561,21 +561,21 @@ public class Jumpship extends Aero {
     public void setNOfficers(int officer) {
         nOfficers = officer;
     }
-    
+
     @Override
     public int getNOfficers() {
         return nOfficers;
     }
-    
+
     public void setNGunners(int gunners) {
         nGunners = gunners;
     }
-    
+
     @Override
     public int getNGunners() {
         return nGunners;
     }
-    
+
     @Override
     public int getNPassenger() {
         return nPassenger;
@@ -610,7 +610,7 @@ public class Jumpship extends Aero {
     public int getNOtherCrew() {
         return nOtherCrew;
     }
-    
+
     @Override
     public double getFuelPointsPerTon() {
         double ppt;
@@ -670,7 +670,7 @@ public class Jumpship extends Aero {
     public String[] getLocationNames() {
         return LOCATION_NAMES;
     }
-    
+
     //Methods for dealing with the K-F Drive, Sail and L-F Battery
 
     public void setKFIntegrity(int kf) {
@@ -692,7 +692,7 @@ public class Jumpship extends Aero {
     public int getKFDriveDamage() {
         return (getOKFIntegrity() - getKFIntegrity());
     }
-    
+
     //Is any part of the KF Drive damaged?  Used by MHQ for repairs.
     public boolean isKFDriveDamaged() {
         return (getKFHeliumTankHit()
@@ -706,7 +706,7 @@ public class Jumpship extends Aero {
     public void setKFHeliumTankIntegrity(int ht) {
         helium_tankage = ht;
     }
-    
+
     //Used by MHQ when repairing the helium tanks. Allows restoration of up to 2/3 of the total drive integrity
     public int getKFHeliumTankIntegrity() {
         return helium_tankage;
@@ -779,14 +779,14 @@ public class Jumpship extends Aero {
     public int getSailIntegrity() {
         return sail_integrity;
     }
-    
+
     /**
      * @return Whether this ship has a jump sail (optional on space stations and primitive jumpships)
      */
     public boolean hasSail() {
         return sail;
     }
-    
+
     /**
      * @param sail Whether this ship has an energy collection sail
      */
@@ -811,11 +811,11 @@ public class Jumpship extends Aero {
     public boolean canJump() {
         return kf_integrity > 0;
     }
-    
+
     public int getDriveCoreType() {
         return driveCoreType;
     }
-    
+
     public void setDriveCoreType(int driveCoreType) {
         this.driveCoreType = driveCoreType;
     }
@@ -826,14 +826,14 @@ public class Jumpship extends Aero {
     public int getJumpRange() {
         return jumpRange;
     }
-    
+
     /**
      * Set maximum jump range (used for primitive jumpships)
      */
     public void setJumpRange(int range) {
         jumpRange = range;
     }
-    
+
     /**
      * @return The weight of the jump drive core for this unit
      */
@@ -1104,12 +1104,12 @@ public class Jumpship extends Aero {
 
         return points;
     }
-    
+
     @Override
     public double getArmorWeight() {
         return getArmorWeight(locations() - 1); // no armor in hull location
     }
-    
+
     @Override
     public double getArmorWeight(int locCount) {
         double armorPoints = getTotalOArmor();
@@ -1281,7 +1281,7 @@ public class Jumpship extends Aero {
         }
         return (int) Math.floor(getAccumulatedThrust());
     }
-    
+
     /**
      * @return Whether this ship has station-keeping drive instead of transit drive.
      */

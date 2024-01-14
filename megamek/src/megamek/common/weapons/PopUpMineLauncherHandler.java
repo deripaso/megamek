@@ -47,7 +47,7 @@ public class PopUpMineLauncherHandler extends AmmoWeaponHandler {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see megamek.common.weapons.WeaponHandler#calcHits(java.util.Vector)
      */
     @Override
@@ -81,7 +81,7 @@ public class PopUpMineLauncherHandler extends AmmoWeaponHandler {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * megamek.common.weapons.WeaponHandler#handleEntityDamage(megamek.common
      * .Entity, java.util.Vector, megamek.common.Building, int, int, int, int)
@@ -92,7 +92,7 @@ public class PopUpMineLauncherHandler extends AmmoWeaponHandler {
             int bldgAbsorbs) {
         HitData hit = entityTarget.rollHitLocation(toHit.getHitTable(),
                 toHit.getSideTable(), waa.getAimedLocation(),
-                waa.getAimingMode(), toHit.getCover());
+                waa.getAimingMode(), toHit.getCover(), waa.getEntityId());
         hit.setAttackerId(getAttackerId());
         if (target instanceof Mech) {
             hit = new HitData(Mech.LOC_CT);
@@ -136,7 +136,7 @@ public class PopUpMineLauncherHandler extends AmmoWeaponHandler {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see megamek.common.weapons.WeaponHandler#useAmmo()
      */
     @Override

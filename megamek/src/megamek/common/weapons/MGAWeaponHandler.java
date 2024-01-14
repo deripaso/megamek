@@ -63,7 +63,7 @@ public class MGAWeaponHandler extends MGHandler {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see megamek.common.weapons.WeaponHandler#addHeatUseAmmo()
      */
     @Override
@@ -94,7 +94,7 @@ public class MGAWeaponHandler extends MGHandler {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see megamek.common.weapons.WeaponHandler#calcHits(java.util.Vector)
      */
     @Override
@@ -124,7 +124,7 @@ public class MGAWeaponHandler extends MGHandler {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see megamek.common.weapons.WeaponHandler#addHeat()
      */
     @Override
@@ -136,7 +136,7 @@ public class MGAWeaponHandler extends MGHandler {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * megamek.common.weapons.WeaponHandler#handleEntityDamage(megamek.common
      * .Entity, java.util.Vector, megamek.common.Building, int, int, int, int)
@@ -149,7 +149,7 @@ public class MGAWeaponHandler extends MGHandler {
         if (hit == null) {
             hit = entityTarget.rollHitLocation(toHit.getHitTable(),
                     toHit.getSideTable(), waa.getAimedLocation(),
-                    waa.getAimingMode(), toHit.getCover());
+                    waa.getAimingMode(), toHit.getCover(), waa.getEntityId());
             hit.setAttackerId(getAttackerId());
         }
 
@@ -191,8 +191,8 @@ public class MGAWeaponHandler extends MGHandler {
         // damage absorption by the partial cover, if it would have happened
         Hex targetHex = game.getBoard().getHex(target.getPosition());
         boolean targetStickingOutOfBuilding = unitStickingOutOfBuilding(targetHex, entityTarget);
-                
-        nDamage = absorbBuildingDamage(nDamage, entityTarget, bldgAbsorbs, 
+
+        nDamage = absorbBuildingDamage(nDamage, entityTarget, bldgAbsorbs,
                 vPhaseReport, bldg, targetStickingOutOfBuilding);
 
         nDamage = checkTerrain(nDamage, entityTarget, vPhaseReport);
@@ -215,7 +215,7 @@ public class MGAWeaponHandler extends MGHandler {
             if (bGlancing) {
                 hit.makeGlancingBlow();
             }
-            
+
             if (bLowProfileGlancing) {
                 hit.makeGlancingBlow();
             }

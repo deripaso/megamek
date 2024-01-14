@@ -3948,7 +3948,7 @@ public class GameManager implements IGameManager {
                     r.add(diceRoll);
                     addReport(r);
 
-                    HitData hit = unit.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                    HitData hit = unit.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, unloaded.getId());
                     hit.setIgnoreInfantryDoubleDamage(true);
                     addReport(damageEntity(unit, hit, 5));
                 } else { //  Report success
@@ -4044,7 +4044,7 @@ public class GameManager implements IGameManager {
                 side = ToHitData.SIDE_REAR;
             }
             while (damage > 0) {
-                HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, side);
+                HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, side, entity.getId());
                 addReport(damageEntity(entity, hit, 10));
                 damage -= 10;
             }
@@ -4165,7 +4165,7 @@ public class GameManager implements IGameManager {
                 addReport(r);
                 // damage the unit
                 int damage = 10 * (psr.getValue() - diceRoll.getIntValue());
-                HitData hit = unit.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                HitData hit = unit.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, unloaded.getId());
                 Vector<Report> rep = damageEntity(unit, hit, damage);
                 Report.indentAll(rep, 1);
                 rep.lastElement().newlines++;
@@ -4205,7 +4205,7 @@ public class GameManager implements IGameManager {
             r.add(unit.getDisplayName());
             r.addDataWithTooltip(rollCalc, diceRoll.getReport());
             addReport(r);
-            HitData hit = unit.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+            HitData hit = unit.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, unloaded.getId());
             addReport(damageEntity(unit, hit, damage));
             // did we destroy the unit?
             if (unit.isDoomed()) {
@@ -4819,7 +4819,7 @@ public class GameManager implements IGameManager {
                     if (entity instanceof Protomech) {
                         table = ToHitData.HIT_SPECIAL_PROTO;
                     }
-                    HitData hitData = entity.rollHitLocation(table, side);
+                    HitData hitData = entity.rollHitLocation(table, side, entity.getId());
                     hitData.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
                     addReport(damageEntity(entity, hitData, Math.min(5, damage)));
                     damage -= 5;
@@ -5059,7 +5059,7 @@ public class GameManager implements IGameManager {
                         // Infantry don't have different
                         // tables for punches and kicks
                         HitData hit = target.rollHitLocation(ToHitData.HIT_NORMAL,
-                                Compute.targetSideTable(entity, target));
+                                Compute.targetSideTable(entity, target), target.getId());
                         hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
                         // Damage equals tonnage, divided by 5.
                         // ASSUMPTION: damage is applied in one hit.
@@ -5130,7 +5130,7 @@ public class GameManager implements IGameManager {
 
                     // Apply damage to the attacker.
                     int toAttacker = ChargeAttackAction.getDamageTakenBy(entity, bldg, nextPos);
-                    HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(nextPos));
+                    HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(nextPos), entity.getId());
                     hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
                     addReport(damageEntity(entity, hit, toAttacker));
                     addNewLines();
@@ -5208,7 +5208,7 @@ public class GameManager implements IGameManager {
                 int damage = ((int) entity.getWeight() + 4) / 5;
                 while (damage > 0) {
                     addReport(damageEntity(entity, entity.rollHitLocation(
-                                    ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT),
+                                    ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, entity.getId()),
                             Math.min(5, damage)));
                     damage -= 5;
                 }
@@ -5334,7 +5334,7 @@ public class GameManager implements IGameManager {
             // All skid damage is to the front.
             while (damage > 0) {
                 int cluster = Math.min(5, damage);
-                HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, entity.getId());
                 hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
                 addReport(damageEntity(entity, hit, cluster));
                 damage -= cluster;
@@ -5771,9 +5771,9 @@ public class GameManager implements IGameManager {
                 while (crash_damage > 0) {
                     HitData hit;
                     if ((entity instanceof SmallCraft) && ((SmallCraft) entity).isSpheroid()) {
-                        hit = entity.rollHitLocation(ToHitData.HIT_SPHEROID_CRASH, ToHitData.SIDE_REAR);
+                        hit = entity.rollHitLocation(ToHitData.HIT_SPHEROID_CRASH, ToHitData.SIDE_REAR, entity.getId());
                     } else {
-                        hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                        hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, entity.getId());
                     }
 
                     if (crash_damage > 10) {
@@ -5824,14 +5824,14 @@ public class GameManager implements IGameManager {
                         // hit tables)
                         while (crash_damage > 0) {
                             HitData hit = victim.rollHitLocation(
-                                    ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                                    ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, victim.getId());
                             if (victim instanceof Mech) {
                                 hit = victim.rollHitLocation(
-                                        ToHitData.HIT_PUNCH, ToHitData.SIDE_FRONT);
+                                        ToHitData.HIT_PUNCH, ToHitData.SIDE_FRONT, victim.getId());
                             }
                             if (victim instanceof Protomech) {
                                 hit = victim.rollHitLocation(
-                                        ToHitData.HIT_SPECIAL_PROTO, ToHitData.SIDE_FRONT);
+                                        ToHitData.HIT_SPECIAL_PROTO, ToHitData.SIDE_FRONT, victim.getId());
                             }
                             if (crash_damage > 5) {
                                 vReport.addAll(damageEntity(victim, hit, 5));
@@ -7621,7 +7621,7 @@ public class GameManager implements IGameManager {
                         // until we get a rules clarification assume that the
                         // entity is both giver and taker
                         // for charge damage
-                        HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                        HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, entity.getId());
                         addReport(damageEntity(entity, hit, ChargeAttackAction
                                 .getDamageTakenBy(entity, entity)));
                         turnOver = true;
@@ -8086,7 +8086,7 @@ public class GameManager implements IGameManager {
                     r.choose(false);
                     addReport(r);
                     // damage unit
-                    HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                    HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, entity.getId());
                     addReport(damageEntity(entity, hit, 2 * (rollTarget.getValue() - diceRoll.getIntValue())));
                 } else {
                     r.choose(true);
@@ -8428,7 +8428,7 @@ public class GameManager implements IGameManager {
                 final int numFloors = Math.max(0, hex.terrainLevel(Terrains.BLDG_ELEV));
                 vPhaseReport.addAll(damageBuilding(bldg, 150, " is crushed for ", pos));
                 int damage = (int) Math.round((cf / 10.0) * numFloors);
-                HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, entity.getId());
                 vPhaseReport.addAll(damageEntity(entity, hit, damage));
             }
 
@@ -8736,7 +8736,7 @@ public class GameManager implements IGameManager {
                     r.add("3d6");
                     addReport(r);
                     addReport(damageEntity(swarmer,
-                            swarmer.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT),
+                            swarmer.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, entity.getId()),
                             Compute.d6(3)));
                     addNewLines();
                     swarmer.setPosition(curPos);
@@ -8957,7 +8957,7 @@ public class GameManager implements IGameManager {
                         r.add("3d6");
                         addReport(r);
                         addReport(damageEntity(swarmer,
-                                swarmer.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT),
+                                swarmer.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, entity.getId()),
                                 Compute.d6(3)));
                         addNewLines();
                         swarmer.setPosition(curPos);
@@ -9611,7 +9611,7 @@ public class GameManager implements IGameManager {
                 if (rider.getEntityType() == Entity.ETYPE_INFANTRY) {
                     mod = -2;
                 }
-                HitData hit = carrier.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                HitData hit = carrier.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, rider.getId());
                 reports.addAll(criticalEntity(carrier, hit.getLocation(), false, mod, 0));
             }
         }
@@ -9814,7 +9814,7 @@ public class GameManager implements IGameManager {
                 int damage = 25;
                 ToHitData toHit = new ToHitData();
                 while (damage > 0) {
-                    HitData hit = loaded.rollHitLocation(toHit.getHitTable(), ToHitData.SIDE_FRONT);
+                    HitData hit = loaded.rollHitLocation(toHit.getHitTable(), ToHitData.SIDE_FRONT, ((Entity) a).getId());
                     addReport(damageEntity(loaded, hit, 5, false,
                             DamageType.NONE, false, true, false));
                     damage -= 5;
@@ -9824,7 +9824,7 @@ public class GameManager implements IGameManager {
 
         if (unsecured) {
             // roll hit location to get a new critical
-            HitData hit = ((Entity) a).rollHitLocation(ToHitData.HIT_ABOVE, ToHitData.SIDE_FRONT);
+            HitData hit = ((Entity) a).rollHitLocation(ToHitData.HIT_ABOVE, ToHitData.SIDE_FRONT, ((Entity) a).getId());
             addReport(applyCriticalHit((Entity) a, hit.getLocation(), new CriticalSlot(
                     0, ((Aero) a).getPotCrit()), true, 1, false));
         }
@@ -10505,7 +10505,7 @@ public class GameManager implements IGameManager {
                     String reductionCause = "";
                     for (int i = 0; i < m; i++) {
                         int side = Compute.targetSideTable(ae, t, called);
-                        HitData hit = te.rollHitLocation(ToHitData.HIT_NORMAL, side);
+                        HitData hit = te.rollHitLocation(ToHitData.HIT_NORMAL, side, ae.getId());
                         if (te.removePartialCoverHits(hit.getLocation(), cover, side)) {
                             missiles--;
                             // Determine if damageable cover is hit
@@ -10620,13 +10620,13 @@ public class GameManager implements IGameManager {
                 } else if (te instanceof GunEmplacement) {
                     int direction = Compute.targetSideTable(ae, te, called);
                     while (missiles-- > 0) {
-                        HitData hit = te.rollHitLocation(ToHitData.HIT_NORMAL, direction);
+                        HitData hit = te.rollHitLocation(ToHitData.HIT_NORMAL, direction, ae.getId());
                         vPhaseReport.addAll(damageEntity(te, hit, 2));
                     }
                 } else if ((te instanceof Tank) || te.isSupportVehicle()) {
                     int direction = Compute.targetSideTable(ae, te, called);
                     while (missiles-- > 0) {
-                        HitData hit = te.rollHitLocation(ToHitData.HIT_NORMAL, direction);
+                        HitData hit = te.rollHitLocation(ToHitData.HIT_NORMAL, direction, ae.getId());
                         int critRollMod = 0;
                         if (!te.isSupportVehicle() || (te.hasArmoredChassis()
                                 && (te.getBARRating(hit.getLocation()) > 9))) {
@@ -10681,7 +10681,7 @@ public class GameManager implements IGameManager {
                     te.heatFromExternal += missiles;
                     while (te.heatFromExternal >= 3) {
                         te.heatFromExternal -= 3;
-                        HitData hit = te.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                        HitData hit = te.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, ae.getId());
                         if (hit.getLocation() == Protomech.LOC_NMISS) {
                             Protomech proto = (Protomech) te;
                             r = new Report(6035);
@@ -10727,7 +10727,7 @@ public class GameManager implements IGameManager {
                     te.heatFromExternal += missiles;
                     while (te.heatFromExternal >= 3) {
                         te.heatFromExternal -= 3;
-                        HitData hit = te.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                        HitData hit = te.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, ae.getId());
                         hit.setEffect(HitData.EFFECT_CRITICAL);
                         vPhaseReport.addAll(damageEntity(te, hit, 1));
                         Report.addNewline(vPhaseReport);
@@ -11005,7 +11005,7 @@ public class GameManager implements IGameManager {
                     HitData hit;
                     if (minesweeper == null) {
                         hit = entity.rollHitLocation(Minefield.TO_HIT_TABLE,
-                                Minefield.TO_HIT_SIDE);
+                                Minefield.TO_HIT_SIDE, entity.getId());
                     } else { // Minesweepers cause mines to hit minesweeper loc
                         hit = new HitData(minesweeper.getLocation());
                     }
@@ -11158,7 +11158,7 @@ public class GameManager implements IGameManager {
                         int cur_damage = Math.min(5, damage);
                         damage = damage - cur_damage;
                         HitData hit = victim.rollHitLocation(
-                                Minefield.TO_HIT_TABLE, Minefield.TO_HIT_SIDE);
+                                Minefield.TO_HIT_TABLE, Minefield.TO_HIT_SIDE, en.getId());
                         vClearReport.addAll(damageEntity(victim, hit, cur_damage));
                     }
                 }
@@ -11348,7 +11348,7 @@ public class GameManager implements IGameManager {
                 while (damage > 0) {
                     int cur_damage = Math.min(5, damage);
                     damage = damage - cur_damage;
-                    HitData hit = entity.rollHitLocation(Minefield.TO_HIT_TABLE, Minefield.TO_HIT_SIDE);
+                    HitData hit = entity.rollHitLocation(Minefield.TO_HIT_TABLE, Minefield.TO_HIT_SIDE, entity.getId());
                     vMineReport.addAll(damageEntity(entity, hit, cur_damage));
                 }
                 vMineReport.addAll(resolvePilotingRolls(entity, true, lastPos, curPos));
@@ -11546,7 +11546,7 @@ public class GameManager implements IGameManager {
             while (damage > 0) {
                 int cur_damage = Math.min(5, damage);
                 damage = damage - cur_damage;
-                HitData hit = entity.rollHitLocation(Minefield.TO_HIT_TABLE, Minefield.TO_HIT_SIDE);
+                HitData hit = entity.rollHitLocation(Minefield.TO_HIT_TABLE, Minefield.TO_HIT_SIDE, entity.getId());
                 vBoomReport.addAll(damageEntity(entity, hit, cur_damage));
             }
             Report.addNewline(vBoomReport);
@@ -11884,7 +11884,7 @@ public class GameManager implements IGameManager {
                     int damage = 20;
                     while (damage > 0) {
                         addReport(damageEntity(entity, entity.rollHitLocation(ToHitData.HIT_NORMAL,
-                                ToHitData.SIDE_REAR), Math.min(5, damage)));
+                                ToHitData.SIDE_REAR, entity.getId()), Math.min(5, damage)));
                         damage -= 5;
                     }
                 }
@@ -11895,7 +11895,7 @@ public class GameManager implements IGameManager {
                 int damage = 50;
                 while (damage > 0) {
                     addReport(damageEntity(entity, entity.rollHitLocation(ToHitData.HIT_NORMAL,
-                            ToHitData.SIDE_REAR), Math.min(5, damage)));
+                            ToHitData.SIDE_REAR,entity.getId()), Math.min(5, damage)));
                     damage -= 5;
                 }
             } else {
@@ -11905,7 +11905,7 @@ public class GameManager implements IGameManager {
                 int damage = 100;
                 while (damage > 0) {
                     addReport(damageEntity(entity, entity.rollHitLocation(ToHitData.HIT_NORMAL,
-                            ToHitData.SIDE_REAR), Math.min(5, damage)));
+                            ToHitData.SIDE_REAR, entity.getId()), Math.min(5, damage)));
                     damage -= 5;
                 }
             }
@@ -12347,7 +12347,7 @@ public class GameManager implements IGameManager {
                     vPhaseReport.add(r);
                     while (damage > 0) {
                         int cluster = Math.min(5, damage);
-                        HitData hit = affaTarget.rollHitLocation(ToHitData.HIT_PUNCH, ToHitData.SIDE_FRONT);
+                        HitData hit = affaTarget.rollHitLocation(ToHitData.HIT_PUNCH, ToHitData.SIDE_FRONT, entity.getId());
                         hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
                         vPhaseReport.addAll(damageEntity(affaTarget, hit, cluster));
                         damage -= cluster;
@@ -14387,10 +14387,10 @@ public class GameManager implements IGameManager {
             final int damage = 5;
 
             // Damage the squad.
-            addReport(damageEntity(target, target.rollHitLocation(0, 0), damage));
-            addReport(damageEntity(target, target.rollHitLocation(0, 0), damage));
-            addReport(damageEntity(target, target.rollHitLocation(0, 0), damage));
-            addReport(damageEntity(target, target.rollHitLocation(0, 0), damage));
+            addReport(damageEntity(target, target.rollHitLocation(0, 0, entity.getId()), damage));
+            addReport(damageEntity(target, target.rollHitLocation(0, 0, entity.getId()), damage));
+            addReport(damageEntity(target, target.rollHitLocation(0, 0, entity.getId()), damage));
+            addReport(damageEntity(target, target.rollHitLocation(0, 0, entity.getId()), damage));
 
             // Damage from B Pods is applied immediately.
             target.applyDamage();
@@ -15162,7 +15162,7 @@ public class GameManager implements IGameManager {
             return;
         }
 
-        HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable());
+        HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(), ae.getId());
         hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
         r = new Report(4045);
         r.subject = ae.getId();
@@ -15421,7 +15421,7 @@ public class GameManager implements IGameManager {
             return;
         }
 
-        HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable());
+        HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(), ae.getId());
         hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
         r = new Report(4045);
         r.subject = ae.getId();
@@ -15665,7 +15665,7 @@ public class GameManager implements IGameManager {
                     break;
                 }
             }
-            HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable());
+            HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(), ae.getId());
             hit.setGeneralDamageType(HitData.DAMAGE_ENERGY);
 
             // The building shields all units from a certain amount of damage.
@@ -15840,7 +15840,7 @@ public class GameManager implements IGameManager {
             return;
         }
 
-        HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable());
+        HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(), ae.getId());
         hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
 
         r = new Report(4045);
@@ -15901,7 +15901,7 @@ public class GameManager implements IGameManager {
                     r.addDesc(te);
                     // shut down for rest of scenario, so we actually kill it
                     // TODO : fix for salvage purposes
-                    HitData targetTrooper = te.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                    HitData targetTrooper = te.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, ae.getId());
                     r.add(te.getLocationAbbr(targetTrooper));
                     vPhaseReport.add(r);
                     vPhaseReport.addAll(criticalEntity(ae, targetTrooper.getLocation(),
@@ -16031,7 +16031,7 @@ public class GameManager implements IGameManager {
             // Missed Brush Off attacks cause punch damage to the attacker.
             toHit.setHitTable(ToHitData.HIT_PUNCH);
             toHit.setSideTable(ToHitData.SIDE_FRONT);
-            HitData hit = ae.rollHitLocation(toHit.getHitTable(), toHit.getSideTable());
+            HitData hit = ae.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(), ae.getId());
             hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
             r = new Report(4095);
             r.subject = ae.getId();
@@ -16053,7 +16053,7 @@ public class GameManager implements IGameManager {
         switch (target.getTargetType()) {
             case Targetable.TYPE_ENTITY:
                 // Handle Entity targets.
-                HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable());
+                HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(), ae.getId());
                 hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
                 r = new Report(4045);
                 r.subject = ae.getId();
@@ -16190,7 +16190,7 @@ public class GameManager implements IGameManager {
         while (hits > 0) {
             int damage = Math.min(5, hits);
             hits -= damage;
-            HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable());
+            HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(), ae.getId());
             hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
             r = new Report(4135);
             r.subject = ae.getId();
@@ -16341,7 +16341,7 @@ public class GameManager implements IGameManager {
                 damage = hits;
             }
             hits -= damage;
-            HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable());
+            HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(), ae.getId());
             hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
             r = new Report(4135);
             r.subject = ae.getId();
@@ -16604,7 +16604,7 @@ public class GameManager implements IGameManager {
             return;
         }
 
-        HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable());
+        HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(), ae.getId());
         hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
         r = new Report(4045);
         r.subject = ae.getId();
@@ -16964,7 +16964,7 @@ public class GameManager implements IGameManager {
             ((Mech) te).setCheckForCrit(true);
         }
 
-        checkForSpikes(te, ae.rollHitLocation(ToHitData.HIT_PUNCH, Compute.targetSideTable(ae, te)).getLocation(),
+        checkForSpikes(te, ae.rollHitLocation(ToHitData.HIT_PUNCH, Compute.targetSideTable(ae, te), ae.getId()).getLocation(),
                 0, ae, Mech.LOC_LARM, Mech.LOC_RARM);
 
         addNewLines();
@@ -17501,7 +17501,7 @@ public class GameManager implements IGameManager {
 
             // Apply damage to the attacker.
             int toAttacker = ChargeAttackAction.getDamageTakenBy(ae, bldg, target.getPosition());
-            HitData hit = ae.rollHitLocation(ToHitData.HIT_NORMAL, ae.sideTable(target.getPosition()));
+            HitData hit = ae.rollHitLocation(ToHitData.HIT_NORMAL, ae.sideTable(target.getPosition()), ae.getId());
             hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
             addReport(damageEntity(ae, hit, toAttacker, false, DamageType.NONE,
                     false, false, throughFront));
@@ -17747,7 +17747,7 @@ public class GameManager implements IGameManager {
 
             // Damage the missile
             HitData hit = tm.rollHitLocation(ToHitData.HIT_NORMAL,
-                    tm.sideTable(te.getPosition(), true));
+                    tm.sideTable(te.getPosition(), true), ae.getId());
             addReport(damageEntity(ae, hit, amsDamage, false,
                     DamageType.NONE, false, false, false));
 
@@ -17815,7 +17815,7 @@ public class GameManager implements IGameManager {
         } else {
             // Resolve the damage.
             HitData hit = te.rollHitLocation(ToHitData.HIT_NORMAL,
-                    te.sideTable(ae.getPosition(), true));
+                    te.sideTable(ae.getPosition(), true), ae.getId());
             hit.setCapital(true);
             hit.setCapMisCritMod(tm.getCritMod());
             addReport(damageEntity(te, hit,
@@ -17971,7 +17971,7 @@ public class GameManager implements IGameManager {
         r.indent();
         addReport(r);
 
-        HitData hit = ae.rollHitLocation(ToHitData.HIT_NORMAL, ae.sideTable(te.getPosition(), true));
+        HitData hit = ae.rollHitLocation(ToHitData.HIT_NORMAL, ae.sideTable(te.getPosition(), true), ae.getId());
         // if the damage is greater than the initial armor then destroy the
         // entity
         if ((2 * ae.getOArmor(hit)) < damageTaken) {
@@ -17988,7 +17988,7 @@ public class GameManager implements IGameManager {
         r.indent();
         addReport(r);
 
-        hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable());
+        hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(), ae.getId());
         if ((2 * te.getOArmor(hit)) < damage) {
             addReport(destroyEntity(te, "by massive ramming damage", false));
         } else {
@@ -18088,7 +18088,7 @@ public class GameManager implements IGameManager {
                 hit = new HitData(Mech.LOC_CT);
             } else {
                 cluster = Math.min(5, damageTaken);
-                hit = ae.rollHitLocation(toHit.getHitTable(), ae.sideTable(te.getPosition()));
+                hit = ae.rollHitLocation(toHit.getHitTable(), ae.sideTable(te.getPosition()), ae.getId());
             }
             damageTaken -= cluster;
             hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
@@ -18168,7 +18168,7 @@ public class GameManager implements IGameManager {
                 r.indent();
                 addReport(r);
             } else {
-                HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable());
+                HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(), ae.getId());
                 hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
                 if (bDirect) {
                     hit.makeDirectBlow(directBlowCritMod);
@@ -18613,7 +18613,7 @@ public class GameManager implements IGameManager {
 
             while (damage > 0) {
                 int cluster = Math.min(5, damage);
-                HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable());
+                HitData hit = te.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(), ae.getId());
                 hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
                 if (directBlow) {
                     hit.makeDirectBlow(toHit.getMoS() / 3);
@@ -18663,7 +18663,7 @@ public class GameManager implements IGameManager {
         addReport(r);
         while (damageTaken > 0) {
             int cluster = Math.min(5, damageTaken);
-            HitData hit = ae.rollHitLocation(ToHitData.HIT_KICK, ToHitData.SIDE_FRONT);
+            HitData hit = ae.rollHitLocation(ToHitData.HIT_KICK, ToHitData.SIDE_FRONT, ae.getId());
             hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
             addReport(damageEntity(ae, hit, cluster));
             damageTaken -= cluster;
@@ -19803,7 +19803,7 @@ public class GameManager implements IGameManager {
                 addReport(criticalTank((Tank) entity, Tank.LOC_FRONT, bonus, 0, true));
             } else if (entity instanceof Protomech) {
                 // this code is taken from inferno hits
-                HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, entity.getId());
                 if (hit.getLocation() == Protomech.LOC_NMISS) {
                     Protomech proto = (Protomech) entity;
                     r = new Report(6035);
@@ -20287,7 +20287,7 @@ public class GameManager implements IGameManager {
                         r.add(mech.getLevelsFallen());
                     }
                     vPhaseReport.add(r);
-                    HitData newHit = mech.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                    HitData newHit = mech.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, mech.getId());
                     vPhaseReport.addAll(criticalEntity(mech,
                             newHit.getLocation(), newHit.isRear(),
                             mech.getLevelsFallen(), 0));
@@ -21639,7 +21639,7 @@ public class GameManager implements IGameManager {
                 return vDesc;
             }
             Entity fighter = fighters.get(hit.getLocation());
-            HitData new_hit = fighter.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+            HitData new_hit = fighter.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT,hit.getAttackerId());
             new_hit.setBoxCars(hit.rolledBoxCars());
             new_hit.setGeneralDamageType(hit.getGeneralDamageType());
             new_hit.setCapital(hit.isCapital());
@@ -22259,7 +22259,7 @@ public class GameManager implements IGameManager {
                     vDesc.addElement(r);
 
                     HitData passHit = swarm.rollHitLocation(
-                            ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                            ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, ae.getId());
 
                     // How much damage will the swarm absorb?
                     int absorb = 0;
@@ -23421,7 +23421,7 @@ public class GameManager implements IGameManager {
         HitData passHit = passenger.getTrooperAtLocation(hit, te);
         if (passenger.hasETypeFlag(Entity.ETYPE_PROTOMECH)) {
             passengerDamage -= damage / 2;
-            passHit = passenger.rollHitLocation(ToHitData.HIT_SPECIAL_PROTO, ToHitData.SIDE_FRONT);
+            passHit = passenger.rollHitLocation(ToHitData.HIT_SPECIAL_PROTO, ToHitData.SIDE_FRONT, hit.getAttackerId());
         } else if (avoidRoll < 5) {
             passengerDamage = 0;
         }
@@ -23925,7 +23925,7 @@ public class GameManager implements IGameManager {
                     if (e instanceof Protomech) {
                         table = ToHitData.HIT_SPECIAL_PROTO;
                     }
-                    HitData hit = e.rollHitLocation(table, ToHitData.SIDE_FRONT);
+                    HitData hit = e.rollHitLocation(table, ToHitData.SIDE_FRONT, e.getId());
                     vDesc.addAll(damageEntity(e, hit, cluster, false,
                             DamageType.IGNORE_PASSENGER, false, true));
                     damage -= cluster;
@@ -24353,9 +24353,9 @@ public class GameManager implements IGameManager {
                 }
             } else if (entity instanceof Tank) {
                 // All vehicles suffer two critical hits...
-                HitData hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position));
+                HitData hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position), entity.getId());
                 vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0));
-                hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position));
+                hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position), hd.getAttackerId());
                 vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0));
 
                 // ...and a Crew Killed hit.
@@ -24363,9 +24363,9 @@ public class GameManager implements IGameManager {
                         Tank.CRIT_CREW_KILLED), false, 0, false));
             } else if ((entity instanceof Mech) || (entity instanceof Protomech)) {
                 // 'Mechs suffer two critical hits...
-                HitData hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position));
+                HitData hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position), entity.getId());
                 vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0));
-                hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position));
+                hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position), hd.getAttackerId());
                 vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0));
 
                 // and four pilot hits.
@@ -24393,7 +24393,7 @@ public class GameManager implements IGameManager {
                 }
             } else if (entity instanceof Tank) {
                 // It takes one crit...
-                HitData hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position));
+                HitData hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position), entity.getId());
                 vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0));
 
                 // Plus a Crew Stunned critical.
@@ -24401,7 +24401,7 @@ public class GameManager implements IGameManager {
                         Tank.CRIT_CREW_STUNNED), false, 0, false));
             } else if ((entity instanceof Mech) || (entity instanceof Protomech)) {
                 // 'Mechs suffer a critical hit...
-                HitData hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position));
+                HitData hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position), entity.getId());
                 vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0));
 
                 // and two pilot hits.
@@ -25870,7 +25870,7 @@ public class GameManager implements IGameManager {
                 List<Entity> passengers = tank.getLoadedUnits();
                 if (!passengers.isEmpty()) {
                     Entity target = passengers.get(Compute.randomInt(passengers.size()));
-                    hit = target.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                    hit = target.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, tank.getId());
                     reports.addAll(damageEntity(target, hit, damageCaused));
                 }
                 break;
@@ -26507,7 +26507,7 @@ public class GameManager implements IGameManager {
             // standard damage loop
             while (damage > 0) {
                 int cluster = Math.min(5, damage);
-                HitData hit = en.rollHitLocation(ToHitData.HIT_NORMAL, table);
+                HitData hit = en.rollHitLocation(ToHitData.HIT_NORMAL, table, en.getId());
                 if ((en instanceof VTOL) && (hit.getLocation() == VTOL.LOC_ROTOR) && rerollRotorHits) {
                     continue;
                 }
@@ -26549,7 +26549,7 @@ public class GameManager implements IGameManager {
             // standard damage loop
             while (damage > 0) {
                 int cluster = Math.min(5, damage);
-                HitData hit = en.rollHitLocation(ToHitData.HIT_NORMAL, impactSide);
+                HitData hit = en.rollHitLocation(ToHitData.HIT_NORMAL, impactSide, en.getId());
                 hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
                 int[] isBefore = {en.getInternal(Tank.LOC_FRONT), en.getInternal(Tank.LOC_RIGHT),
                         en.getInternal(Tank.LOC_LEFT), en.getInternal(Tank.LOC_REAR)};
@@ -28393,7 +28393,7 @@ public class GameManager implements IGameManager {
         } else {
             while (damage > 0) {
                 int cluster = Math.min(5, damage);
-                HitData hit = entity.rollHitLocation(damageTable, table);
+                HitData hit = entity.rollHitLocation(damageTable, table, entity.getId());
                 hit.makeFallDamage(true);
                 vPhaseReport.addAll(damageEntity(entity, hit, cluster));
                 damage -= cluster;
@@ -28408,7 +28408,7 @@ public class GameManager implements IGameManager {
         // Water damage
         while (waterDamage > 0) {
             int cluster = Math.min(5, waterDamage);
-            HitData hit = entity.rollHitLocation(damageTable, table);
+            HitData hit = entity.rollHitLocation(damageTable, table, entity.getId());
             hit.makeFallDamage(true);
             vPhaseReport.addAll(damageEntity(entity, hit, cluster));
             waterDamage -= cluster;
@@ -28451,7 +28451,7 @@ public class GameManager implements IGameManager {
                 vPhaseReport.add(r);
                 vPhaseReport.addAll(damageEntity(swarmer, swarmer
                         .rollHitLocation(ToHitData.HIT_NORMAL,
-                                ToHitData.SIDE_FRONT), Compute.d6(2)));
+                                ToHitData.SIDE_FRONT, entity.getId()), Compute.d6(2)));
                 Report.addNewline(vPhaseReport);
             }
             swarmer.setPosition(fallPos);
@@ -31027,7 +31027,7 @@ public class GameManager implements IGameManager {
                     if (majorExp) {
                         damage = Compute.d6(2);
                     }
-                    HitData hit = en.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                    HitData hit = en.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, en.getId());
                     if (en instanceof BattleArmor) {
                         // ugly - I have to apply damage to each trooper
                         // separately
@@ -31127,7 +31127,7 @@ public class GameManager implements IGameManager {
                     if (backwards) {
                         side = ToHitData.SIDE_REAR;
                     }
-                    HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, side);
+                    HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, side, bldg.getId()); //TODO - check
                     hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
                     addReport(damageEntity(entity, hit, damage));
                 }
@@ -31257,7 +31257,7 @@ public class GameManager implements IGameManager {
                         }
                         while (remaining > 0) {
                             int next = Math.min(cluster, remaining);
-                            HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                            HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, bldg.getId()); //TODO - check
                             vDesc.addAll((damageEntity(entity, hit, next)));
                             remaining -= next;
                         }
@@ -31717,7 +31717,7 @@ public class GameManager implements IGameManager {
                     } else {
                         table = ToHitData.HIT_PUNCH;
                     }
-                    HitData hit = entity.rollHitLocation(table, ToHitData.SIDE_FRONT);
+                    HitData hit = entity.rollHitLocation(table, ToHitData.SIDE_FRONT, bldg.getId()); //test
                     hit.setGeneralDamageType(HitData.DAMAGE_PHYSICAL);
                     vPhaseReport.addAll(damageEntity(entity, hit, next));
                     remaining -= next;
@@ -34911,7 +34911,7 @@ public class GameManager implements IGameManager {
                     Entity en = game.getEntity(airborne.get(loc));
                     int damage = Math.max(1, Compute.d6() / 2) + damage_bonus;
                     while (damage > 0) {
-                        HitData hit = en.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_RANDOM);
+                        HitData hit = en.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_RANDOM, en.getId());
                         vFullReport.addAll(damageEntity(en, hit, 1));
                         damage--;
                     }

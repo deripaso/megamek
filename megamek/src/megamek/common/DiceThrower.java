@@ -45,7 +45,7 @@ public class DiceThrower {
     String playerName = entity.getOwner().getName();
 
     JFrame frame = new JFrame();
-    int diceThrow = MMDiceInputDialog.throwDice(frame,playerName+"'s "+rolltype, dice + "D6 roll", dice);
+    int diceThrow = MMDiceInputDialog.throwDice(frame,playerName+"'s "+dice+"D6 roll", rolltype, dice);
     LogManager.getLogger().info(playerName+" dice for "+rolltype+entityName + diceThrow);
     rollResult = diceThrow;
 
@@ -57,7 +57,7 @@ public class DiceThrower {
     String playerName = entity.getOwner().getName();
 
     JFrame frame = new JFrame();
-    int diceThrow = MMDiceInputDialog.throwDice(frame,playerName+"'s "+rolltype, dice + "D6 roll", dice);
+    int diceThrow = MMDiceInputDialog.throwDice(frame,playerName+"'s "+dice+"D6 roll", rolltype, dice);
     LogManager.getLogger().info(playerName+" dice for "+rolltype+entityName + diceThrow);
     Roll rollResult = new MMRoll.manRoll(dice,0, diceThrow);
     return rollResult;
