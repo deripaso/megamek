@@ -272,7 +272,7 @@ public class FighterSquadron extends AeroSpaceFighter {
 
     @Override
     public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode,
-                                   int cover, int attackerId) {
+                                   int cover, int attackerId, boolean isCritical) {
         List<Entity> activeFighters = getActiveSubEntities();
 
         // If this squadron is doomed or is of size 1 then just return the first one
@@ -281,13 +281,13 @@ public class FighterSquadron extends AeroSpaceFighter {
         }
 
         // Pick a random number between 0 and the number of fighters in the squadron.
-        int hit = Compute.randomInt(activeFighters.size());
+        int hit = Compute.randomInt(activeFighters.size()); //TODO - manual roll
         return new HitData(hit);
     }
 
     @Override
-    public HitData rollHitLocation(int table, int side, int attackerId) {
-        return rollHitLocation(table, side, LOC_NONE, AimingMode.NONE, LosEffects.COVER_NONE, attackerId);
+    public HitData rollHitLocation(int table, int side, int attackerId, boolean isCritical) {
+        return rollHitLocation(table, side, LOC_NONE, AimingMode.NONE, LosEffects.COVER_NONE, attackerId, isCritical);
     }
 
     @Override

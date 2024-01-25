@@ -576,8 +576,8 @@ public class BattleArmor extends Infantry {
      */
     @Override
     public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode,
-                                   int cover, int attackerId) {
-        return rollHitLocation(side, aimedLocation, aimingMode, false, attackerId);
+                                   int cover, int attackerId, boolean isCritical) {
+        return rollHitLocation(side, aimedLocation, aimingMode, false, attackerId, isCritical);
     }
 
     /**
@@ -586,14 +586,14 @@ public class BattleArmor extends Infantry {
      * @param isAttackingConvInfantry Set to true when attacked by CI, as these cannot score TacOps crits
      */
     public HitData rollHitLocation(int side, int aimedLocation, AimingMode aimingMode,
-                                   boolean isAttackingConvInfantry, int attackerId) {
+                                   boolean isAttackingConvInfantry, int attackerId, boolean isCritical) {
         // If this squad was killed, target trooper 1 (just because).
         if (isDoomed()) {
             return new HitData(1);
         }
 
         if ((aimedLocation != LOC_NONE) && !aimingMode.isNone()) {
-            int roll = Compute.d6(2);
+            int roll = Compute.d6(2); //TODO - manual rolll
             if ((5 < roll) && (roll < 9)) {
                 return new HitData(aimedLocation, side == ToHitData.SIDE_REAR, true);
             }
@@ -624,8 +624,8 @@ public class BattleArmor extends Infantry {
     }
 
     @Override
-    public HitData rollHitLocation(int table, int side, int attackerId) {
-        return rollHitLocation(table, side, LOC_NONE, AimingMode.NONE, LosEffects.COVER_NONE, attackerId);
+    public HitData rollHitLocation(int table, int side, int attackerId, boolean isCritical) {
+        return rollHitLocation(table, side, LOC_NONE, AimingMode.NONE, LosEffects.COVER_NONE, attackerId, isCritical);
     }
 
     /**
@@ -705,7 +705,7 @@ public class BattleArmor extends Infantry {
             }
         }
         // otherwise roll a random location
-        return rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, this.id); //TODO - check
+        return rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, this.id, false); //TODO - check
     }
 
     /**

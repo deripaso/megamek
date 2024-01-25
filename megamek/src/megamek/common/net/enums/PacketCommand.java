@@ -120,7 +120,10 @@ public enum PacketCommand {
     CFR_HIDDEN_PBS,
     CFR_TELEGUIDED_TARGET,
     CFR_TAG_TARGET,
-    GAME_VICTORY_EVENT;
+    GAME_VICTORY_EVENT,
+    CFR_INITIATIVE_THROW,
+    CFR_INT_D6_THROW,
+    CFR_ROLL_D6_THROW;
     //endregion Enum Declarations
 
     //region Boolean Comparison Methods
@@ -159,10 +162,19 @@ public enum PacketCommand {
     public boolean isGameVictoryEvent() {
         return this == GAME_VICTORY_EVENT;
     }
+    public boolean isCFRManualInitiativeRoll() {
+        return this == CFR_INITIATIVE_THROW;
+    }
+    public boolean isCFRManualIntD6() {
+        return this == CFR_INT_D6_THROW;
+    }
+    public boolean isCFRManualRollD6() {
+        return this == CFR_ROLL_D6_THROW;
+    }
 
     public boolean isCFR() {
         return isCFRDominoEffect() || isCFRAMSAssign() || isCFRAPDSAssign() || isCFRHiddenPBS()
-                || isCFRTeleguidedTarget() || isCFRTagTarget();
+                || isCFRTeleguidedTarget() || isCFRTagTarget() || isCFRManualInitiativeRoll() || isCFRManualIntD6() || isCFRManualRollD6(); //TODO - new enums
     }
     //endregion Boolean Comparison Methods
 }

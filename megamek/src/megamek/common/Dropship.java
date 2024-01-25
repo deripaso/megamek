@@ -574,13 +574,13 @@ public class Dropship extends SmallCraft {
     }
 
     @Override
-    public HitData rollHitLocation(int table, int side, int attackerId) {
+    public HitData rollHitLocation(int table, int side, int attackerId, boolean isCritical) {
         if ((table == ToHitData.HIT_KICK) || (table == ToHitData.HIT_PUNCH)) {
             // we don't really have any good rules on how to apply this,
             // I have a rules question posted about it:
             // http://bg.battletech.com/forums/index.php/topic,24077.new.html#new
             // in the meantime lets make up our own hit table (fun!)
-            int roll = Compute.d6(2);
+            int roll = Compute.d6(2); //TODO - manual roll
             if (side == ToHitData.SIDE_LEFT) {
                 // normal left-side hits
                 switch (roll) {
@@ -657,7 +657,7 @@ public class Dropship extends SmallCraft {
             }
             return new HitData(LOC_AFT, false, HitData.EFFECT_NONE);
         } else {
-            return super.rollHitLocation(table, side, attackerId);
+            return super.rollHitLocation(table, side, attackerId, isCritical);
         }
     }
 

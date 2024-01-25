@@ -44,7 +44,7 @@ public class ACAPHandler extends ACWeaponHandler {
                                       Building bldg, int hits, int nCluster, int bldgAbsorbs) {
         AmmoType atype = (AmmoType) weapon.getLinked().getType();
         HitData hit = entityTarget.rollHitLocation(toHit.getHitTable(), toHit.getSideTable(),
-                waa.getAimedLocation(), waa.getAimingMode(), toHit.getCover(), waa.getEntityId());
+                waa.getAimedLocation(), waa.getAimingMode(), toHit.getCover(), waa.getEntityId(), false);
         hit.setGeneralDamageType(generalDamageType);
         hit.setAttackerId(getAttackerId());
         if (entityTarget.removePartialCoverHits(hit.getLocation(), toHit.getCover(),

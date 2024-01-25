@@ -1479,9 +1479,9 @@ public class LandAirMech extends BipedMech implements IAero, IBomber {
      * Hit location table for fighter mode
      */
     @Override
-    public HitData rollHitLocation(int table, int side, int attackerId) {
+    public HitData rollHitLocation(int table, int side, int attackerId, boolean isCritical) {
         if (getConversionMode() != CONV_MODE_FIGHTER) {
-            return super.rollHitLocation(table, side, attackerId); //TODO - check
+            return super.rollHitLocation(table, side, attackerId, isCritical); //TODO - check
         }
 
         int roll = Compute.d6(2);
@@ -1925,7 +1925,7 @@ public class LandAirMech extends BipedMech implements IAero, IBomber {
             int hits = (int) Math.ceil(damage / 5.0);
             int damPerHit = 5;
             for (int i = 0; i < hits; i++) {
-                int loc = rollHitLocation(ToHitData.HIT_ABOVE, ToHitData.SIDE_RANDOM, this.getId()).getLocation();
+                int loc = rollHitLocation(ToHitData.HIT_ABOVE, ToHitData.SIDE_RANDOM, this.getId(), false).getLocation();
                 setArmor(getArmor(loc) - Math.max(damPerHit, damage), loc);
                 // We did too much damage, so we need to damage the internal
                 // structure

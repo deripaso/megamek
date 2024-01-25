@@ -44,8 +44,8 @@ public class MMDiceInputDialog  {
       panButtons.add(t);
       panButtons.add(tt);
       Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-      owner.setSize(600,800);
-      owner.setLocation((screenSize.width - getSize().width) / 4, (screenSize.height - getSize().height) / 4);
+      setSize(600,800);
+      setLocation((screenSize.width - getSize().width) / 4, (screenSize.height - getSize().height) / 4); // removed owner. berfor these two
 
       addWindowListener( new WindowAdapter() {
         public void windowOpened( WindowEvent e ){ //TODO - more research on swing behavior

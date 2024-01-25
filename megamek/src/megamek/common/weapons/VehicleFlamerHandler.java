@@ -76,7 +76,7 @@ public class VehicleFlamerHandler extends AmmoWeaponHandler {
         } else if (flamerDoesHeatOnlyDamage) {
             hit = entityTarget.rollHitLocation(toHit.getHitTable(),
                     toHit.getSideTable(), waa.getAimedLocation(),
-                    waa.getAimingMode(), toHit.getCover(), waa.getEntityId());
+                    waa.getAimingMode(), toHit.getCover(), waa.getEntityId(), false);
             hit.setAttackerId(getAttackerId());
 
             if (entityTarget.removePartialCoverHits(hit.getLocation(), toHit

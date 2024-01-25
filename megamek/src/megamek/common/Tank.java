@@ -1004,9 +1004,15 @@ public class Tank extends Entity {
      */
     @Override
     public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode,
-                                   int cover, int attackerId) {
-      boolean manualLocation = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_HIT_LOCATION);
+                                   int cover, int attackerId, boolean isCritical) {
+      boolean manualLocation = game.getOptions().booleanOption(OptionsConstants.MAN_HIT_LOCATION);
       String attackerName = game.getEntity(attackerId).getDisplayName();
+      String rollType;
+      if (isCritical) {
+        rollType = " Critical Hit Location";
+      } else {
+        rollType = " Hit Location";
+      }
         int nArmorLoc = LOC_FRONT;
         boolean bSide = false;
         boolean bRear = false;
@@ -1066,7 +1072,7 @@ public class Tank extends Entity {
             if (!manualLocation || game.getEntity(attackerId).getOwner().isBot()) {
               roll = Compute.d6(2);
             } else {
-            roll = Compute.manualD6(2,this,attackerName+"'s roll for "+this.getDisplayName()+" Hit Location Roll");
+            roll = Compute.manualD6(2,this,attackerName+"'s roll for "+this.getDisplayName()+rollType);
             }
 
             if ((5 < roll) && (roll < 9)) {
@@ -1080,7 +1086,7 @@ public class Tank extends Entity {
           if (!manualLocation || game.getEntity(attackerId).getOwner().isBot()) {
             roll = Compute.d6(2);
           } else {
-            roll = Compute.manualD6(2,this,attackerName+"'s roll for "+this.getDisplayName()+" Hit Location Roll");
+            roll = Compute.manualD6(2,this,attackerName+"'s roll for "+this.getDisplayName()+rollType);
           }
             switch (roll) {
                 case 2:
@@ -1288,8 +1294,8 @@ public class Tank extends Entity {
     }
 
     @Override
-    public HitData rollHitLocation(int table, int side, int attackerId) {
-        return rollHitLocation(table, side, LOC_NONE, AimingMode.NONE, LosEffects.COVER_NONE, attackerId);
+    public HitData rollHitLocation(int table, int side, int attackerId, boolean isCritical) {
+        return rollHitLocation(table, side, LOC_NONE, AimingMode.NONE, LosEffects.COVER_NONE, attackerId, isCritical);
     }
 
     /**

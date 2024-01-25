@@ -154,7 +154,7 @@ public class VTOL extends Tank implements IBomber {
 
     @Override
     public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode,
-                                   int cover, int attackerId) {
+                                   int cover, int attackerId, boolean isCritical) {
         int nArmorLoc = LOC_FRONT;
         boolean bSide = false;
         if (side == ToHitData.SIDE_LEFT) {
@@ -169,7 +169,7 @@ public class VTOL extends Tank implements IBomber {
         HitData rv = new HitData(nArmorLoc);
         boolean bHitAimed = false;
         if ((aimedLocation != LOC_NONE) && !aimingMode.isNone()) {
-            int roll = Compute.d6(2);
+            int roll = Compute.d6(2); //TODO - manual roll
             if ((5 < roll) && (roll < 9)) {
                 rv = new HitData(aimedLocation, side == ToHitData.SIDE_REAR, true);
                 bHitAimed = true;

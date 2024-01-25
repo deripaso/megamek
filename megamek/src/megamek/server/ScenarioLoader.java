@@ -184,7 +184,7 @@ public class ScenarioLoader {
         for (DamagePlan damagePlan : damagePlans) {
             LogManager.getLogger().debug(String.format("Applying damage to %s", damagePlan.entity.getShortName()));
             for (int y = 0; y < damagePlan.nBlocks; ++ y) {
-                HitData hit = damagePlan.entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, damagePlan.entity.getId());
+                HitData hit = damagePlan.entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, damagePlan.entity.getId(), false);
                 LogManager.getLogger().debug("[s.damageEntity(dp.entity, hit, 5)]");
                 m.damageEntity(damagePlan.entity, hit, 5);
             }
