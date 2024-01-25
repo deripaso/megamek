@@ -2651,6 +2651,18 @@ public class ClientGUI extends JPanel implements BoardViewListener,
                         client.sendTAGTargetCFRResponse(0);
                     }
                     break;
+                case CFR_INITIATIVE_THROW:
+                    int initativeRollResult = MMDiceInputDialog.throwDice(frame, evt.getRollTitle(), evt.getRollDescription(), evt.getNumDice()); //TODO - test jOptionPane?
+                    client.sendManualIniRollCFRResponse(initativeRollResult);
+                    break;
+                case CFR_INT_D6_THROW:
+                    int intD6RollResult = MMDiceInputDialog.throwDice(frame, evt.getRollTitle(), evt.getRollDescription(), evt.getNumDice());
+                    client.sendManualIntD6RollCFRResponse(intD6RollResult);
+                    break;
+                case CFR_ROLL_D6_THROW:
+                    int d6RollResult = MMDiceInputDialog.throwDice(frame, evt.getRollTitle(), evt.getRollDescription(), evt.getNumDice());
+                    client.sendManualD6RollCFRResponse(d6RollResult);
+                    break;
                 default:
                     break;
             }

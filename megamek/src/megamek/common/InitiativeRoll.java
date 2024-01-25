@@ -62,7 +62,7 @@ public class InitiativeRoll implements Comparable<InitiativeRoll>, Serializable 
         }
       else
         {
-          int roll = DiceThrower.ThrowInitiative(2, whois);
+          int roll = DiceThrower.ThrowInitiative(2, whois, tServerInstance);
           rolls.addElement(roll);
           originalRolls.addElement(roll);
           bonuses.addElement(bonus);

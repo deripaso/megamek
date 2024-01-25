@@ -16,6 +16,7 @@ package megamek.server;
 import megamek.common.IGame;
 import megamek.common.Player;
 import megamek.common.Report;
+import megamek.common.Roll;
 import megamek.common.net.packets.Packet;
 import megamek.server.commands.ServerCommand;
 
@@ -73,5 +74,10 @@ public interface IGameManager {
 
     List<ServerCommand> getCommandList(Server server);
 
-    void addReport(Report r);
+  int processManualIntD6CFR(int playerID, String title, String description, int dice);
+
+  int processManualRollD6CFR(int playerID, String title, String description, int dice);
+  void addReport(Report r);
+
+  int processManualIniCFR(int playerID, String title, String description, int dice);
 }

@@ -1927,8 +1927,8 @@ public abstract class Mech extends Entity {
      * @see megamek.common.Entity#rollHitLocation(int, int)
      */
     @Override
-    public HitData rollHitLocation(int table, int side, int attackerId) {
-        return rollHitLocation(table, side, LOC_NONE, AimingMode.NONE, LosEffects.COVER_NONE, attackerId);
+    public HitData rollHitLocation(int table, int side, int attackerId, boolean isCritical) {
+        return rollHitLocation(table, side, LOC_NONE, AimingMode.NONE, LosEffects.COVER_NONE, attackerId, isCritical);
     }
 
     /*
@@ -1938,16 +1938,22 @@ public abstract class Mech extends Entity {
      */
     @Override
     public HitData rollHitLocation(int table, int side, int aimedLocation, AimingMode aimingMode,
-                                   int cover, int attackerId) {
+                                   int cover, int attackerId, boolean isCritical) {
         int roll = -1;
         boolean manualLocation = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_HIT_LOCATION);
         boolean manualPunch = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PUNCH_LOCATION);
         boolean manualKick = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_KICK_LOCATION);
         String attackerName = game.getEntity(attackerId).getDisplayName();
+        String rollType;
+        if (isCritical) {
+          rollType = " Critical Hit Location";
+        } else {
+          rollType = " Hit Location";
+        }
 
         if ((aimedLocation != LOC_NONE) && !aimingMode.isNone()) {
           if (manualLocation & !game.getEntity(attackerId).getOwner().isBot()) {
-            roll = Compute.manualD6(2, this, attackerName+"'s roll for "+this.getDisplayName()+" Hit Location");
+            roll = Compute.manualD6(2, this, attackerName+"'s roll for "+this.getDisplayName()+rollType);
           } else {
             roll = Compute.d6(2);
           }
@@ -1959,7 +1965,7 @@ public abstract class Mech extends Entity {
 
         if ((table == ToHitData.HIT_NORMAL) || (table == ToHitData.HIT_PARTIAL_COVER)) {
             if (manualLocation & !game.getEntity(attackerId).getOwner().isBot()) {
-              roll = Compute.manualD6(2, this, attackerName+"'s roll for "+this.getDisplayName()+" Hit Location");
+              roll = Compute.manualD6(2, this, attackerName+"'s roll for "+this.getDisplayName()+rollType);
             } else {
               roll = Compute.d6(2);
             }
@@ -1984,11 +1990,11 @@ public abstract class Mech extends Entity {
                                 && getCrew().getOptions().booleanOption(OptionsConstants.EDGE_WHEN_TAC))
                                 && !game.getOptions().booleanOption(OptionsConstants.ADVCOMBAT_NO_TAC)) {
                             getCrew().decreaseEdge();
-                            HitData result = rollHitLocation(table, side, aimedLocation, aimingMode, cover, attackerId);
-                            result.setUndoneLocation(tac(table, side, Mech.LOC_CT, cover, false, attackerId));
+                            HitData result = rollHitLocation(table, side, aimedLocation, aimingMode, cover, attackerId, false);
+                            result.setUndoneLocation(tac(table, side, Mech.LOC_CT, cover, false, attackerId, false));
                             return result;
                         }
-                        return tac(table, side, Mech.LOC_CT, cover, false, attackerId);
+                        return tac(table, side, Mech.LOC_CT, cover, false, attackerId, true);
                     case 3:
                     case 4:
                         return new HitData(Mech.LOC_RARM);
@@ -2011,7 +2017,7 @@ public abstract class Mech extends Entity {
                                         OptionsConstants.EDGE_WHEN_HEADHIT)) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                    aimedLocation, aimingMode, cover, attackerId);
+                                    aimedLocation, aimingMode, cover, attackerId, false);
                             result.setUndoneLocation(new HitData(Mech.LOC_HEAD));
                             return result;
                         } // if
@@ -2026,12 +2032,12 @@ public abstract class Mech extends Entity {
                                 && !game.getOptions().booleanOption(OptionsConstants.ADVCOMBAT_NO_TAC)) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                    aimedLocation, aimingMode, cover, attackerId);
+                                    aimedLocation, aimingMode, cover, attackerId, false);
                             result.setUndoneLocation(tac(table, side,
-                                    Mech.LOC_LT, cover, false, attackerId));
+                                    Mech.LOC_LT, cover, false, attackerId, false));
                             return result;
                         } // if
-                        return tac(table, side, Mech.LOC_LT, cover, false, attackerId);
+                        return tac(table, side, Mech.LOC_LT, cover, false, attackerId, true);
                     case 3:
                         return new HitData(Mech.LOC_LLEG);
                     case 4:
@@ -2063,7 +2069,7 @@ public abstract class Mech extends Entity {
                                         OptionsConstants.EDGE_WHEN_HEADHIT)) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                    aimedLocation, aimingMode, cover, attackerId);
+                                    aimedLocation, aimingMode, cover, attackerId, false);
                             result.setUndoneLocation(new HitData(Mech.LOC_HEAD));
                             return result;
                         } // if
@@ -2078,12 +2084,12 @@ public abstract class Mech extends Entity {
                                 && !game.getOptions().booleanOption(OptionsConstants.ADVCOMBAT_NO_TAC)) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                    aimedLocation, aimingMode, cover, attackerId);
+                                    aimedLocation, aimingMode, cover, attackerId, false);
                             result.setUndoneLocation(tac(table, side,
-                                    Mech.LOC_RT, cover, false, attackerId));
+                                    Mech.LOC_RT, cover, false, attackerId, false));
                             return result;
                         } // if
-                        return tac(table, side, Mech.LOC_RT, cover, false, attackerId);
+                        return tac(table, side, Mech.LOC_RT, cover, false, attackerId, true);
                     case 3:
                         return new HitData(Mech.LOC_RLEG);
                     case 4:
@@ -2115,7 +2121,7 @@ public abstract class Mech extends Entity {
                                         OptionsConstants.EDGE_WHEN_HEADHIT)) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                    aimedLocation, aimingMode, cover, attackerId);
+                                    aimedLocation, aimingMode, cover, attackerId, false);
                             result.setUndoneLocation(new HitData(Mech.LOC_HEAD));
                             return result;
                         } // if
@@ -2135,12 +2141,12 @@ public abstract class Mech extends Entity {
                                             OptionsConstants.ADVCOMBAT_NO_TAC)) {
                                 getCrew().decreaseEdge();
                                 HitData result = rollHitLocation(table, side,
-                                        aimedLocation, aimingMode, cover, attackerId);
+                                        aimedLocation, aimingMode, cover, attackerId, false);
                                 result.setUndoneLocation(tac(table, side,
-                                        Mech.LOC_CT, cover, true, attackerId));
+                                        Mech.LOC_CT, cover, true, attackerId, false));
                                 return result;
                             } // if
-                            return tac(table, side, Mech.LOC_CT, cover, true, attackerId);
+                            return tac(table, side, Mech.LOC_CT, cover, true, attackerId, true);
                         case 3:
                             return new HitData(Mech.LOC_RARM, true);
                         case 4:
@@ -2163,7 +2169,7 @@ public abstract class Mech extends Entity {
                                             OptionsConstants.EDGE_WHEN_HEADHIT)) {
                                 getCrew().decreaseEdge();
                                 HitData result = rollHitLocation(table, side,
-                                        aimedLocation, aimingMode, cover, attackerId);
+                                        aimedLocation, aimingMode, cover, attackerId, false);
                                 result.setUndoneLocation(new HitData(
                                         Mech.LOC_HEAD, true));
                                 return result;
@@ -2180,12 +2186,12 @@ public abstract class Mech extends Entity {
                                             OptionsConstants.ADVCOMBAT_NO_TAC)) {
                                 getCrew().decreaseEdge();
                                 HitData result = rollHitLocation(table, side,
-                                        aimedLocation, aimingMode, cover, attackerId);
+                                        aimedLocation, aimingMode, cover, attackerId, false);
                                 result.setUndoneLocation(tac(table, side,
-                                        Mech.LOC_CT, cover, true, attackerId));
+                                        Mech.LOC_CT, cover, true, attackerId, false));
                                 return result;
                             } // if
-                            return tac(table, side, Mech.LOC_CT, cover, true, attackerId);
+                            return tac(table, side, Mech.LOC_CT, cover, true, attackerId, true);
                         case 3:
                         case 4:
                             return new HitData(Mech.LOC_RARM, true);
@@ -2208,7 +2214,7 @@ public abstract class Mech extends Entity {
                                             OptionsConstants.EDGE_WHEN_HEADHIT)) {
                                 getCrew().decreaseEdge();
                                 HitData result = rollHitLocation(table, side,
-                                        aimedLocation, aimingMode, cover, attackerId);
+                                        aimedLocation, aimingMode, cover, attackerId, false);
                                 result.setUndoneLocation(new HitData(
                                         Mech.LOC_HEAD, true));
                                 return result;
@@ -2258,7 +2264,7 @@ public abstract class Mech extends Entity {
                                         OptionsConstants.EDGE_WHEN_HEADHIT)) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                    aimedLocation, aimingMode, cover, attackerId);
+                                    aimedLocation, aimingMode, cover, attackerId, false);
                             result.setUndoneLocation(new HitData(Mech.LOC_HEAD));
                             return result;
                         } // if
@@ -2282,7 +2288,7 @@ public abstract class Mech extends Entity {
                                         OptionsConstants.EDGE_WHEN_HEADHIT)) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                    aimedLocation, aimingMode, cover, attackerId);
+                                    aimedLocation, aimingMode, cover, attackerId, false);
                             result.setUndoneLocation(new HitData(Mech.LOC_HEAD));
                             return result;
                         } // if
@@ -2306,7 +2312,7 @@ public abstract class Mech extends Entity {
                                         OptionsConstants.EDGE_WHEN_HEADHIT)) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                    aimedLocation, aimingMode, cover, attackerId);
+                                    aimedLocation, aimingMode, cover, attackerId, false);
                             result.setUndoneLocation(new HitData(Mech.LOC_HEAD));
                             return result;
                         } // if
@@ -2332,7 +2338,7 @@ public abstract class Mech extends Entity {
                                         OptionsConstants.EDGE_WHEN_HEADHIT)) {
                             getCrew().decreaseEdge();
                             HitData result = rollHitLocation(table, side,
-                                    aimedLocation, aimingMode, cover, attackerId);
+                                    aimedLocation, aimingMode, cover, attackerId, false);
                             result.setUndoneLocation(new HitData(Mech.LOC_HEAD,
                                     true));
                             return result;
@@ -2417,7 +2423,7 @@ public abstract class Mech extends Entity {
                     if (getCrew().hasEdgeRemaining()
                             && getCrew().getOptions().booleanOption(OptionsConstants.EDGE_WHEN_HEADHIT)) {
                         getCrew().decreaseEdge();
-                        HitData result = rollHitLocation(table, side, aimedLocation, aimingMode, cover, attackerId);
+                        HitData result = rollHitLocation(table, side, aimedLocation, aimingMode, cover, attackerId, false);
                         result.setUndoneLocation(new HitData(Mech.LOC_HEAD, false, effects));
                         return result;
                     }
@@ -2446,7 +2452,7 @@ public abstract class Mech extends Entity {
                                     OptionsConstants.EDGE_WHEN_HEADHIT)) {
                         getCrew().decreaseEdge();
                         HitData result = rollHitLocation(table, side,
-                                aimedLocation, aimingMode, cover, attackerId);
+                                aimedLocation, aimingMode, cover, attackerId, false);
                         result.setUndoneLocation(new HitData(Mech.LOC_HEAD,
                                 false, effects));
                         return result;
@@ -2491,7 +2497,7 @@ public abstract class Mech extends Entity {
                                     OptionsConstants.EDGE_WHEN_HEADHIT)) {
                         getCrew().decreaseEdge();
                         HitData result = rollHitLocation(table, side,
-                                aimedLocation, aimingMode, cover, attackerId);
+                                aimedLocation, aimingMode, cover, attackerId, false);
                         result.setUndoneLocation(new HitData(Mech.LOC_HEAD,
                                 (side == ToHitData.SIDE_REAR)));
                         return result;
@@ -2542,17 +2548,17 @@ public abstract class Mech extends Entity {
      * in the specified location.
      */
     protected HitData tac(int table, int side, int location, int cover,
-            boolean rear, int attackerId) {
+            boolean rear, int attackerId, boolean isCritical) {
         if (game.getOptions().booleanOption(OptionsConstants.ADVCOMBAT_NO_TAC)) {
             return new HitData(location, rear);
         } else if (game.getOptions().booleanOption(OptionsConstants.ADVCOMBAT_FLOATING_CRITS)) {
-            HitData hd = rollHitLocation(table, side, attackerId);
+            HitData hd = rollHitLocation(table, side, attackerId, isCritical);
             // check for cover and keep rolling until you get something without
             // cover
             int i = 0;
             while (removePartialCoverHits(hd.getLocation(), cover, side)
                     && (i < 500)) {
-                hd = rollHitLocation(table, side, attackerId);
+                hd = rollHitLocation(table, side, attackerId, isCritical);
                 i++;
             }
             return new HitData(hd.getLocation(), hd.isRear(),

@@ -22,21 +22,21 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * A Client Feedback Request Event.  This event is created when the server 
+ * A Client Feedback Request Event.  This event is created when the server
  * requires feedback of some form from the Client.
- * 
+ *
  * @see GameListener
  * @author arlith
  */
 public class GameCFREvent extends GameEvent {
     private static final long serialVersionUID = 230173422932412803L;
-    
+
     private PacketCommand cfrType;
-    
+
     private int eId;
 
     private int targetId;
-    
+
     /**
      * The equipment number for the AMS used in AMS_ASSIGN CFRs.
      */
@@ -45,7 +45,7 @@ public class GameCFREvent extends GameEvent {
     private List<Integer> apdsDists;
 
     /**
-     * List of WeaponAttackActions that can have an AMS assigned to them for 
+     * List of WeaponAttackActions that can have an AMS assigned to them for
      * AMS_ASSIGN CFRs.
      */
     private List<WeaponAttackAction> waas;
@@ -54,22 +54,25 @@ public class GameCFREvent extends GameEvent {
      * List of Target IDs for targets of a teleguided missile.
      */
     private List<Integer> telemissileTargets;
-    
+
     /**
      * List of toHit values for the possible telemissile targets.
      */
     private List<Integer> tmToHitValues;
-    
+
     /**
      * List of Target IDs for tagged targets within range.
      */
     private List<Integer> tagTargets;
-    
+
     /**
      * List of Targetable object types for tagged targets within range.
      */
     private List<Integer> tagTargetTypes;
-    
+    private String rollTitle;
+    private String rollDescription;
+    private int numDice;
+
     /**
      * Construct game event
      */
@@ -77,9 +80,9 @@ public class GameCFREvent extends GameEvent {
         super(source);
         this.cfrType = cfrType;
     }
-    
+
     /**
-     * Sub-classed events implement this method to call their specific method on 
+     * Sub-classed events implement this method to call their specific method on
      * a GameListener instance that their event has been fired.
      * @param gl GameListener recipient.
      */
@@ -87,9 +90,9 @@ public class GameCFREvent extends GameEvent {
     public void fireEvent(GameListener gl) {
         gl.gameClientFeedbackRequest(this);
     }
-    
+
     @Override
-    public String getEventName() {
+    public String getEventName() { //TODO - add new descriptions
         String evtName = "Client Feedback Request, ";
         switch (cfrType) {
             case CFR_DOMINO_EFFECT:
@@ -124,7 +127,7 @@ public class GameCFREvent extends GameEvent {
     public PacketCommand getCFRType() {
         return cfrType;
     }
-    
+
     public int getEntityId() {
         return eId;
     }
@@ -168,15 +171,15 @@ public class GameCFREvent extends GameEvent {
     public List<Integer> getTelemissileTargetIds() {
         return Collections.unmodifiableList(telemissileTargets);
     }
-    
+
     public void setTeleguidedMissileTargets(List<Integer> newTargetIds) {
         telemissileTargets = new ArrayList<>(newTargetIds);
     }
-    
+
     public List<Integer> getTmToHitValues() {
         return Collections.unmodifiableList(tmToHitValues);
     }
-    
+
     public void setTmToHitValues(List<Integer> toHitValues) {
         tmToHitValues = new ArrayList<>(toHitValues);
     }
@@ -184,16 +187,34 @@ public class GameCFREvent extends GameEvent {
     public List<Integer> getTAGTargets() {
         return Collections.unmodifiableList(tagTargets);
     }
-    
+
     public void setTAGTargets(List<Integer> newTargets) {
         tagTargets = new ArrayList<>(newTargets);
     }
-    
+
     public List<Integer> getTAGTargetTypes() {
         return Collections.unmodifiableList(tagTargetTypes);
     }
-    
+
     public void setTAGTargetTypes(List<Integer> targetTypes) {
         tagTargetTypes = new ArrayList<>(targetTypes);
+    }
+    public void setRollTitle (String title) {
+      rollTitle = title;
+    }
+    public String getRollTitle(){
+      return rollTitle;
+    }
+    public void setRollDescription (String description) {
+      rollDescription = description;
+    }
+    public String getRollDescription(){
+      return rollDescription;
+    }
+    public void setNumDice(int dice) {
+      numDice = dice;
+    }
+    public int getNumDice(){
+      return numDice;
     }
 }

@@ -56,7 +56,7 @@ public class InfantryHeatWeaponHandler extends InfantryWeaponHandler {
             // heat
             hit = entityTarget.rollHitLocation(toHit.getHitTable(),
                     toHit.getSideTable(), waa.getAimedLocation(), waa
-                            .getAimingMode(), toHit.getCover(), waa.getEntityId());
+                            .getAimingMode(), toHit.getCover(), waa.getEntityId(), false);
             hit.setAttackerId(getAttackerId());
 
             Hex targetHex = game.getBoard().getHex(target.getPosition());

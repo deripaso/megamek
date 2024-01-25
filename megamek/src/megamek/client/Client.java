@@ -1694,6 +1694,21 @@ public class Client implements IClientCommandHandler {
                             cfrEvt.setTAGTargets((List<Integer>) c.getObject(1));
                             cfrEvt.setTAGTargetTypes((List<Integer>) c.getObject(2));
                             break;
+                        case CFR_INITIATIVE_THROW:
+                            cfrEvt.setRollTitle((String) c.getData()[1]);
+                            cfrEvt.setRollDescription((String) c.getData()[2]);
+                            cfrEvt.setNumDice((int) c.getData()[3]);
+                            break;
+                        case CFR_INT_D6_THROW:
+                            cfrEvt.setRollTitle((String) c.getData()[1]);
+                            cfrEvt.setRollDescription((String) c.getData()[2]);
+                            cfrEvt.setNumDice((int) c.getData()[3]);
+                            break;
+                        case CFR_ROLL_D6_THROW:
+                            cfrEvt.setRollTitle((String) c.getData()[1]);
+                            cfrEvt.setRollDescription((String) c.getData()[2]);
+                            cfrEvt.setNumDice((int) c.getData()[3]);
+                            break;
                         default:
                             break;
                     }
@@ -1753,6 +1768,15 @@ public class Client implements IClientCommandHandler {
 
     public void sendTAGTargetCFRResponse(int index) {
         send(new Packet(PacketCommand.CLIENT_FEEDBACK_REQUEST, PacketCommand.CFR_TAG_TARGET, index));
+    }
+    public void sendManualIniRollCFRResponse(int rollResult) {
+        send(new Packet(PacketCommand.CLIENT_FEEDBACK_REQUEST, PacketCommand.CFR_INITIATIVE_THROW, rollResult));
+    }
+    public void sendManualD6RollCFRResponse(int rollResult) {
+        send(new Packet(PacketCommand.CLIENT_FEEDBACK_REQUEST, PacketCommand.CFR_ROLL_D6_THROW, rollResult));
+    }
+    public void sendManualIntD6RollCFRResponse(int rollResult) {
+        send(new Packet(PacketCommand.CLIENT_FEEDBACK_REQUEST, PacketCommand.CFR_INT_D6_THROW, rollResult));
     }
 
     /**

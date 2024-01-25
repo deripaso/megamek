@@ -58,7 +58,7 @@ public class ASEWMissileWeaponHandler extends ThunderBoltWeaponHandler {
 
         hit = entityTarget.rollHitLocation(toHit.getHitTable(),
                 toHit.getSideTable(), waa.getAimedLocation(),
-                waa.getAimingMode(), toHit.getCover(), waa.getEntityId());
+                waa.getAimingMode(), toHit.getCover(), waa.getEntityId(), false);
         hit.setGeneralDamageType(generalDamageType);
         hit.setCapital(wtype.isCapital());
         hit.setBoxCars(roll.getIntValue() == 12);

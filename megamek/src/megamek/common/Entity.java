@@ -3193,12 +3193,12 @@ public abstract class Entity extends TurnOrdered implements Transporter, Targeta
      * Rolls the to-hit number
      */
     public abstract HitData rollHitLocation(int table, int side, int aimedLocation,
-                                            AimingMode aimingMode, int cover, int attackerId);
+                                            AimingMode aimingMode, int cover, int attackerId, boolean isCrit);
 
     /**
      * Rolls up a hit location
      */
-    public abstract HitData rollHitLocation(int table, int side, int attackerId);
+    public abstract HitData rollHitLocation(int table, int side, int attackerId, boolean isCrit);
 
     /**
      * Gets the location that excess damage transfers to. That is, one location
@@ -9013,7 +9013,7 @@ public abstract class Entity extends TurnOrdered implements Transporter, Targeta
     }
 
     public HitData getTrooperAtLocation(HitData hit, Entity transport) {
-        return rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, this.id);
+        return rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, this.id, false);
     }
 
     /**

@@ -63,7 +63,7 @@ public class LegAttackHandler extends WeaponHandler {
             int bldgAbsorbs) {
         HitData hit = entityTarget.rollHitLocation(toHit.getHitTable(),
                 toHit.getSideTable(), waa.getAimedLocation(),
-                waa.getAimingMode(), toHit.getCover(), waa.getEntityId());
+                waa.getAimingMode(), toHit.getCover(), waa.getEntityId(), false);
         hit.setAttackerId(getAttackerId());
         // If a leg attacks hit a leg that isn't
         // there, then hit the other leg.

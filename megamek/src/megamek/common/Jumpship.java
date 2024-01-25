@@ -904,7 +904,7 @@ public class Jumpship extends Aero {
 
     // different hit locations
     @Override
-    public HitData rollHitLocation(int table, int side) {
+    public HitData rollHitLocation(int table, int side, int attackerId, boolean isCritical) {
 
         /*
          * Unlike other units, ASFs determine potential crits based on the
@@ -912,7 +912,7 @@ public class Jumpship extends Aero {
          * the to hit data
          */
 
-        int roll = Compute.d6(2);
+        int roll = Compute.d6(2); //TODO - manual roll
         if (side == ToHitData.SIDE_FRONT) {
             // normal front hits
             switch (roll) {
