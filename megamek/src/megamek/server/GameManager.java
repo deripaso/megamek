@@ -6617,7 +6617,7 @@ public class GameManager implements IGameManager {
                         if (!doSkillCheckInSpace(entity, rollTarget)) {
                             a.setSI(a.getSI() - 1);
                             if (entity instanceof LandAirMech) {
-                                addReport(criticalEntity(entity, Mech.LOC_CT, false, 0, 1));
+                                addReport(criticalEntity(entity, Mech.LOC_CT, false, 0, 1, entity));
                             }
                             // check for destruction
                             if (a.getSI() == 0) {
@@ -7411,16 +7411,16 @@ public class GameManager implements IGameManager {
                         addReport(damageEntity(entity, new HitData(Mech.LOC_LLEG), leapDistance));
                         addReport(damageEntity(entity, new HitData(Mech.LOC_RLEG), leapDistance));
                         addNewLines();
-                        addReport(criticalEntity(entity, Mech.LOC_LLEG, false, 0, 0));
+                        addReport(criticalEntity(entity, Mech.LOC_LLEG, false, 0, 0, entity));
                         addNewLines();
-                        addReport(criticalEntity(entity, Mech.LOC_RLEG, false, 0, 0));
+                        addReport(criticalEntity(entity, Mech.LOC_RLEG, false, 0, 0, entity));
                         if (entity instanceof QuadMech) {
                             addReport(damageEntity(entity, new HitData(Mech.LOC_LARM), leapDistance));
                             addReport(damageEntity(entity, new HitData(Mech.LOC_RARM), leapDistance));
                             addNewLines();
-                            addReport(criticalEntity(entity, Mech.LOC_LARM, false, 0, 0));
+                            addReport(criticalEntity(entity, Mech.LOC_LARM, false, 0, 0, entity));
                             addNewLines();
-                            addReport(criticalEntity(entity, Mech.LOC_RARM, false, 0, 0));
+                            addReport(criticalEntity(entity, Mech.LOC_RARM, false, 0, 0, entity));
                         }
                     }
                     // skill check for fall
@@ -9612,7 +9612,7 @@ public class GameManager implements IGameManager {
                     mod = -2;
                 }
                 HitData hit = carrier.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, rider.getId(),false);
-                reports.addAll(criticalEntity(carrier, hit.getLocation(), false, mod, 0));
+                reports.addAll(criticalEntity(carrier, hit.getLocation(), false, mod, 0, carrier));
             }
         }
         return reports;
@@ -10730,7 +10730,7 @@ public class GameManager implements IGameManager {
                             critRollMod -= 2;
                         }
                         vPhaseReport.addAll(criticalEntity(te, hit.getLocation(), hit.isRear(),
-                                critRollMod, 0, DamageType.INFERNO));
+                                critRollMod, 0, DamageType.INFERNO, ae));
                     }
                 } else if (te instanceof ConvFighter) {
                     // CFs take a point SI damage for every three missiles that hit.
@@ -15098,7 +15098,7 @@ public class GameManager implements IGameManager {
         r.addDesc(ae);
         addReport(r);
         for (int location : criticalLocations) {
-            addReport(criticalEntity(ae, location, false, 0, 1));
+            addReport(criticalEntity(ae, location, false, 0, 1, ae));
         }
 
         if (missed) {
@@ -15322,7 +15322,7 @@ public class GameManager implements IGameManager {
                 if (!(target instanceof Infantry)) {
                     addNewLines();
                     addReport(criticalEntity(te, hit.getLocation(), hit.isRear(), 0,
-                            true, false, damage));
+                            true, false, damage, ae));
                 }
 
                 if ((target instanceof BattleArmor) && (hit.getLocation() < te.locations())
@@ -15586,7 +15586,7 @@ public class GameManager implements IGameManager {
 
             if (te.hasQuirk(OptionsConstants.QUIRK_NEG_WEAK_LEGS)) {
                 addNewLines();
-                addReport(criticalEntity(te, hit.getLocation(), hit.isRear(), 0, 0));
+                addReport(criticalEntity(te, hit.getLocation(), hit.isRear(), 0, 0, ae));
             }
         }
 
@@ -15996,7 +15996,7 @@ public class GameManager implements IGameManager {
                     r.add(te.getLocationAbbr(targetTrooper));
                     vPhaseReport.add(r);
                     vPhaseReport.addAll(criticalEntity(ae, targetTrooper.getLocation(),
-                            targetTrooper.isRear(), 0, false, false, 0));
+                            targetTrooper.isRear(), 0, false, false, 0, ae));
                 } else if (te instanceof Mech) {
                     if (((Mech) te).isIndustrial()) {
                         if (rollValue2 >= 8) {
@@ -18762,14 +18762,14 @@ public class GameManager implements IGameManager {
 
         if (ae.hasQuirk(OptionsConstants.QUIRK_NEG_WEAK_LEGS)) {
             addNewLines();
-            addReport(criticalEntity(ae, Mech.LOC_LLEG, false, 0, 0));
+            addReport(criticalEntity(ae, Mech.LOC_LLEG, false, 0, 0, ae));
             addNewLines();
-            addReport(criticalEntity(ae, Mech.LOC_RLEG, false, 0, 0));
+            addReport(criticalEntity(ae, Mech.LOC_RLEG, false, 0, 0, ae));
             if (ae instanceof QuadMech) {
                 addNewLines();
-                addReport(criticalEntity(ae, Mech.LOC_LARM, false, 0, 0));
+                addReport(criticalEntity(ae, Mech.LOC_LARM, false, 0, 0, ae));
                 addNewLines();
-                addReport(criticalEntity(ae, Mech.LOC_RARM, false, 0, 0));
+                addReport(criticalEntity(ae, Mech.LOC_RARM, false, 0, 0, ae));
             }
         }
 
@@ -19587,7 +19587,7 @@ public class GameManager implements IGameManager {
                     } else {
                         r.choose(false);
                         addReport(r);
-                        addReport(oneCriticalEntity(entity, Compute.randomInt(8), false, 0));
+                        addReport(oneCriticalEntity(entity, Compute.randomInt(8), false, 0, entity));
                         // add an empty report, for line breaking
                         r = new Report(1210, Report.PUBLIC);
                     }
@@ -19891,7 +19891,7 @@ public class GameManager implements IGameManager {
                 }
                 // roll a critical hit
                 Report.addNewline(vPhaseReport);
-                addReport(criticalTank((Tank) entity, Tank.LOC_FRONT, bonus, 0, true));
+                addReport(criticalTank((Tank) entity, Tank.LOC_FRONT, bonus, 0, true, entity));
             } else if (entity instanceof Protomech) {
                 // this code is taken from inferno hits
                 HitData hit = entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, entity.getId(),false);
@@ -20381,7 +20381,7 @@ public class GameManager implements IGameManager {
                     HitData newHit = mech.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, mech.getId(),true);
                     vPhaseReport.addAll(criticalEntity(mech,
                             newHit.getLocation(), newHit.isRear(),
-                            mech.getLevelsFallen(), 0));
+                            mech.getLevelsFallen(), 0, game.getEntity(newHit.getAttackerId())));
                 }
             }
         }
@@ -22683,10 +22683,10 @@ public class GameManager implements IGameManager {
                         if (te.hasArmoredChassis()) {
                             // crit roll with -1 mod
                             vDesc.addAll(criticalEntity(te, hit.getLocation(),
-                                    hit.isRear(), -1 + critBonus, damage_orig));
+                                    hit.isRear(), -1 + critBonus, damage_orig, game.getEntity(hit.getAttackerId())));
                         } else {
                             vDesc.addAll(criticalEntity(te, hit.getLocation(),
-                                    hit.isRear(), critBonus, damage_orig));
+                                    hit.isRear(), critBonus, damage_orig, game.getEntity(hit.getAttackerId())));
                         }
                     }
                 }
@@ -23290,7 +23290,7 @@ public class GameManager implements IGameManager {
                     && ((hit.getEffect() & HitData.EFFECT_NO_CRITICALS) != HitData.EFFECT_NO_CRITICALS)) {
                 for (int i = 0; i < crits; i++) {
                     vDesc.addAll(criticalEntity(te, hit.getLocation(), hit.isRear(),
-                            hit.glancingMod() + critBonus, damage_orig, damageType));
+                            hit.glancingMod() + critBonus, damage_orig, damageType, ae));
                 }
                 crits = 0;
 
@@ -23309,7 +23309,7 @@ public class GameManager implements IGameManager {
                         critMod += hit.glancingMod();
                     }
                     vDesc.addAll(criticalEntity(te, hit.getLocation(), hit.isRear(),
-                            critMod + critBonus, damage_orig));
+                            critMod + critBonus, damage_orig, ae));
                 }
                 specCrits = 0;
             }
@@ -24441,9 +24441,9 @@ public class GameManager implements IGameManager {
             } else if (entity instanceof Tank) {
                 // All vehicles suffer two critical hits...
                 HitData hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position), entity.getId(),true);
-                vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0));
+                vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0, game.getEntity(hd.getAttackerId())));
                 hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position), hd.getAttackerId(),true);
-                vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0));
+                vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0, game.getEntity(hd.getAttackerId())));
 
                 // ...and a Crew Killed hit.
                 vDesc.addAll(applyCriticalHit(entity, 0, new CriticalSlot(0,
@@ -24451,9 +24451,9 @@ public class GameManager implements IGameManager {
             } else if ((entity instanceof Mech) || (entity instanceof Protomech)) {
                 // 'Mechs suffer two critical hits...
                 HitData hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position), entity.getId(),true);
-                vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0));
+                vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0, game.getEntity(hd.getAttackerId())));
                 hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position), hd.getAttackerId(),true);
-                vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0));
+                vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0, game.getEntity(hd.getAttackerId())));
 
                 // and four pilot hits.
                 vDesc.addAll(damageCrew(entity, 4));
@@ -24481,7 +24481,7 @@ public class GameManager implements IGameManager {
             } else if (entity instanceof Tank) {
                 // It takes one crit...
                 HitData hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position), entity.getId(), true);
-                vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0));
+                vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0, game.getEntity(hd.getAttackerId())));
 
                 // Plus a Crew Stunned critical.
                 vDesc.addAll(applyCriticalHit(entity, 0, new CriticalSlot(0,
@@ -24489,7 +24489,7 @@ public class GameManager implements IGameManager {
             } else if ((entity instanceof Mech) || (entity instanceof Protomech)) {
                 // 'Mechs suffer a critical hit...
                 HitData hd = entity.rollHitLocation(ToHitData.HIT_NORMAL, entity.sideTable(position), entity.getId(), true);
-                vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0));
+                vDesc.addAll(oneCriticalEntity(entity, hd.getLocation(), hd.isRear(), 0, game.getEntity(hd.getAttackerId())));
 
                 // and two pilot hits.
                 vDesc.addAll(damageCrew(entity, 2));
@@ -24641,7 +24641,7 @@ public class GameManager implements IGameManager {
             r.subject = en.getId();
             r.indent(2);
             reports.addElement(r);
-            reports.addAll(criticalEntity(en, loc, false, 0, 0));
+            reports.addAll(criticalEntity(en, loc, false, 0, 0, en));
         }
 
         // If the item is the ECM suite of a Mek Stealth system
@@ -26262,8 +26262,8 @@ public class GameManager implements IGameManager {
      * Rolls and resolves critical hits with a die roll modifier.
      */
 
-    public Vector<Report> criticalEntity(Entity en, int loc, boolean isRear, int critMod, int damage) {
-        return criticalEntity(en, loc, isRear, critMod, true, false, damage);
+    public Vector<Report> criticalEntity(Entity en, int loc, boolean isRear, int critMod, int damage, Entity causeOf) {
+        return criticalEntity(en, loc, isRear, critMod, true, false, damage, causeOf);
     }
 
     /**
@@ -26271,15 +26271,15 @@ public class GameManager implements IGameManager {
      */
 
     public Vector<Report> criticalEntity(Entity en, int loc, boolean isRear, int critMod, int damage,
-                                         DamageType damageType) {
-        return criticalEntity(en, loc, isRear, critMod, true, false, damage, damageType);
+                                         DamageType damageType, Entity causeOf) {
+        return criticalEntity(en, loc, isRear, critMod, true, false, damage, damageType, causeOf);
     }
 
     /**
      * Rolls one critical hit
      */
-    public Vector<Report> oneCriticalEntity(Entity en, int loc, boolean isRear, int damage) {
-        return criticalEntity(en, loc, isRear, 0, false, false, damage);
+    public Vector<Report> oneCriticalEntity(Entity en, int loc, boolean isRear, int damage, Entity causeOf) {
+        return criticalEntity(en, loc, isRear, 0, false, false, damage, causeOf);
     }
 
     /**
@@ -26709,9 +26709,12 @@ public class GameManager implements IGameManager {
      * @param critMod the <code>int</code> modifier to the crit roll
      * @return a <code>Vector<Report></code> containing the phase reports
      */
-    private Vector<Report> criticalTank(Tank t, int loc, int critMod, int damage, boolean damagedByFire) {
+    private Vector<Report> criticalTank(Tank t, int loc, int critMod, int damage, boolean damagedByFire, Entity causeOf) {
         Vector<Report> vDesc = new Vector<>();
         Report r;
+        if (causeOf == null) {
+          causeOf = t;
+        }
 
         // roll the critical
         r = new Report(6305);
@@ -26723,7 +26726,7 @@ public class GameManager implements IGameManager {
         int roll;
         if (game.getOptions().booleanOption(OptionsConstants.MAN_DETERMINE_CRITICALS) && !t.getOwner().isBot()) {
           String rollDescription = t.getShortName() + " Critical Hit Effect";
-          roll = Compute.manualD6(2, t, rollDescription);
+          roll = Compute.manualD6(2, causeOf, rollDescription);
         } else {
           roll = Compute.d6(2);
         }
@@ -26943,9 +26946,9 @@ public class GameManager implements IGameManager {
      * false, a single hit is applied - needed for MaxTech Heat Scale rule.
      */
     public Vector<Report> criticalEntity(Entity en, int loc, boolean isRear,
-                                         int critMod, boolean rollNumber, boolean isCapital, int damage) {
+                                         int critMod, boolean rollNumber, boolean isCapital, int damage, Entity causeOf) {
         return criticalEntity(en, loc, isRear, critMod, rollNumber, isCapital,
-                damage, DamageType.NONE);
+                damage, DamageType.NONE, causeOf);
     }
 
     /**
@@ -26954,8 +26957,11 @@ public class GameManager implements IGameManager {
      */
     public Vector<Report> criticalEntity(Entity en, int loc, boolean isRear,
                                          int critMod, boolean rollNumber, boolean isCapital, int damage,
-                                         DamageType damageType) {
+                                         DamageType damageType, Entity causeOf) {
 
+        if (causeOf == null) {
+          causeOf = en;
+        }
         if (en.hasQuirk("poor_work")) {
             critMod += 1;
         }
@@ -26970,12 +26976,13 @@ public class GameManager implements IGameManager {
         }
 
         if (en instanceof Tank) {
-            return criticalTank((Tank) en, loc, critMod, damage, damageType.equals(DamageType.INFERNO)); //TODO - manual rolls
+            return criticalTank((Tank) en, loc, critMod, damage,
+                    damageType.equals(DamageType.INFERNO), causeOf); //TODO - manual rolls
         }
 
         if (en instanceof Aero) {
             return criticalAero((Aero) en, loc, critMod, "unknown", 8, damage,
-                    isCapital);
+                    isCapital); //TODO - manual rolls
         }
         CriticalSlot slot;
         Vector<Report> vDesc = new Vector<>();
@@ -26999,7 +27006,7 @@ public class GameManager implements IGameManager {
             int roll;
             if (game.getOptions().booleanOption(OptionsConstants.MAN_DETERMINE_CRITICALS) && !en.getOwner().isBot()) {
               String rollDescription = en.getShortName()+" Critical Hit Effect";
-             roll = Compute.manualD6(2, en, rollDescription);
+             roll = Compute.manualD6(2, causeOf, rollDescription);
             } else {
               roll = Compute.d6(2);
             }
@@ -27198,7 +27205,7 @@ public class GameManager implements IGameManager {
           int slotIndex;
           if (game.getOptions().booleanOption(OptionsConstants.MAN_DETERMINE_CRITICALS) && !en.getOwner().isBot()) {
             String rolldesc = "Determine Critical Slot";
-            slotIndex = DiceThrower.customDice(1, en.getNumberOfCriticals(loc), en, rolldesc) - 1; //Components' index starts with "0" in all locations
+            slotIndex = DiceThrower.customDice(1, en.getNumberOfCriticals(loc), causeOf, rolldesc) - 1; //Components' index starts with "0" in all locations
           } else {
             slotIndex = Compute.randomInt(en.getNumberOfCriticals(loc));
           }

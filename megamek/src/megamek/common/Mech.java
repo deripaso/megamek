@@ -1938,6 +1938,7 @@ public abstract class Mech extends Entity {
         boolean manualPunch = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_PUNCH_LOCATION);
         boolean manualKick = Server.getServerInstance().getGame().getOptions().booleanOption(OptionsConstants.MAN_KICK_LOCATION);
         String attackerName = game.getEntity(attackerId).getDisplayName();
+        Entity attackerEn = game.getEntity(attackerId);
         String rollType;
         if (isCritical) {
           rollType = " Critical Hit Location";
@@ -1946,8 +1947,8 @@ public abstract class Mech extends Entity {
         }
 
         if ((aimedLocation != LOC_NONE) && !aimingMode.isNone()) {
-          if (manualLocation & !game.getEntity(attackerId).getOwner().isBot()) {
-            roll = Compute.manualD6(2, this, attackerName+"'s roll for "+this.getDisplayName()+rollType);
+          if (manualLocation & !attackerEn.getOwner().isBot()) {
+            roll = Compute.manualD6(2, attackerEn, attackerName+"'s roll for "+this.getDisplayName()+rollType);
           } else {
             roll = Compute.d6(2);
           }
@@ -1958,8 +1959,8 @@ public abstract class Mech extends Entity {
         }
 
         if ((table == ToHitData.HIT_NORMAL) || (table == ToHitData.HIT_PARTIAL_COVER)) {
-            if (manualLocation & !game.getEntity(attackerId).getOwner().isBot()) {
-              roll = Compute.manualD6(2, this, attackerName+"'s roll for "+this.getDisplayName()+rollType);
+            if (manualLocation & !attackerEn.getOwner().isBot()) {
+              roll = Compute.manualD6(2, attackerEn, attackerName+"'s roll for "+this.getDisplayName()+rollType);
             } else {
               roll = Compute.d6(2);
             }
@@ -2219,8 +2220,8 @@ public abstract class Mech extends Entity {
             }
         }
         if (table == ToHitData.HIT_PUNCH) {
-            if (manualPunch & !game.getEntity(attackerId).getOwner().isBot()) {
-              roll = Compute.manualD6(1, this, attackerName+"'s roll for "+this.getDisplayName()+" Punch Hit Location");
+            if (manualPunch & !attackerEn.getOwner().isBot()) {
+              roll = Compute.manualD6(1, attackerEn, attackerName+"'s roll for "+this.getDisplayName()+" Punch Hit Location");
               } else {
               roll = Compute.d6(1);
               }
@@ -2342,8 +2343,8 @@ public abstract class Mech extends Entity {
             }
         }
         if (table == ToHitData.HIT_KICK) {
-            if (manualKick & !game.getEntity(attackerId).getOwner().isBot()) {
-              roll = Compute.manualD6(1, this, attackerName+"'s roll for "+this.getDisplayName()+" Kick Hit Location");
+            if (manualKick & !attackerEn.getOwner().isBot()) {
+              roll = Compute.manualD6(1, attackerEn, attackerName+"'s roll for "+this.getDisplayName()+" Kick Hit Location");
               } else {
               roll = Compute.d6(1);
               }
@@ -2387,8 +2388,8 @@ public abstract class Mech extends Entity {
         }
         if ((table == ToHitData.HIT_SWARM)
                 || (table == ToHitData.HIT_SWARM_CONVENTIONAL)) {
-            if (manualLocation & !game.getEntity(attackerId).getOwner().isBot()) {
-              roll = Compute.manualD6(2, this, attackerName+"'s roll for "+this.getDisplayName()+" Swarm Attack Location");
+            if (manualLocation & !attackerEn.getOwner().isBot()) {
+              roll = Compute.manualD6(2, attackerEn, attackerName+"'s roll for "+this.getDisplayName()+" Swarm Attack Location");
               } else {
               roll = Compute.d6(2);
               }
@@ -2455,8 +2456,8 @@ public abstract class Mech extends Entity {
             }
         }
         if (table == ToHitData.HIT_ABOVE) {
-            if (manualLocation & !game.getEntity(attackerId).getOwner().isBot()) {
-              roll = Compute.manualD6(1, this, attackerName+"'s roll for "+this.getDisplayName()+" Hit from Above Location");
+            if (manualLocation & !attackerEn.getOwner().isBot()) {
+              roll = Compute.manualD6(1, attackerEn, attackerName+"'s roll for "+this.getDisplayName()+" Hit from Above Location");
             } else {
               roll = Compute.d6(1);
               }
@@ -2501,8 +2502,8 @@ public abstract class Mech extends Entity {
             }
         }
         if (table == ToHitData.HIT_BELOW) {
-            if (manualLocation & !game.getEntity(attackerId).getOwner().isBot()) {
-              roll = Compute.manualD6(1, this, attackerName+"'s roll for "+this.getDisplayName()+" Hit from Below Location");
+            if (manualLocation & !attackerEn.getOwner().isBot()) {
+              roll = Compute.manualD6(1, attackerEn, attackerName+"'s roll for "+this.getDisplayName()+" Hit from Below Location");
             } else {
               roll = Compute.d6(1);
               }

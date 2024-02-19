@@ -1007,6 +1007,7 @@ public class Tank extends Entity {
                                    int cover, int attackerId, boolean isCritical) {
       boolean manualLocation = game.getOptions().booleanOption(OptionsConstants.MAN_HIT_LOCATION);
       String attackerName = game.getEntity(attackerId).getDisplayName();
+      Entity attackerEn = game.getEntity(attackerId);
       String rollType;
       if (isCritical) {
         rollType = " Critical Hit Location";
@@ -1069,10 +1070,10 @@ public class Tank extends Entity {
         boolean bHitAimed = false;
         if ((aimedLocation != LOC_NONE) && !aimingMode.isNone()) {
             int roll;
-            if (!manualLocation || game.getEntity(attackerId).getOwner().isBot()) {
+            if (!manualLocation || attackerEn.getOwner().isBot()) {
               roll = Compute.d6(2);
             } else {
-            roll = Compute.manualD6(2,this,attackerName+"'s roll for "+this.getDisplayName()+rollType);
+            roll = Compute.manualD6(2,attackerEn,attackerName+"'s roll for "+this.getDisplayName()+rollType);
             }
 
             if ((5 < roll) && (roll < 9)) {
@@ -1083,10 +1084,10 @@ public class Tank extends Entity {
         }
         if (!bHitAimed) {
           int roll;
-          if (!manualLocation || game.getEntity(attackerId).getOwner().isBot()) {
+          if (!manualLocation || attackerEn.getOwner().isBot()) {
             roll = Compute.d6(2);
           } else {
-            roll = Compute.manualD6(2,this,attackerName+"'s roll for "+this.getDisplayName()+rollType);
+            roll = Compute.manualD6(2,attackerEn,attackerName+"'s roll for "+this.getDisplayName()+rollType);
           }
             switch (roll) {
                 case 2:
