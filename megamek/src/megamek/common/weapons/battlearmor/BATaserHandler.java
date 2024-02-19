@@ -41,7 +41,7 @@ public class BATaserHandler extends AmmoWeaponHandler {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * megamek.common.weapons.WeaponHandler#specialResolution(java.util.Vector,
      * megamek.common.Entity, boolean)
@@ -61,7 +61,7 @@ public class BATaserHandler extends AmmoWeaponHandler {
         if (entityTarget instanceof BattleArmor) {
             if (diceRoll.getIntValue() >= 9) {
                 initHit(entityTarget);
-            
+
                 r = new Report(3706);
                 r.addDesc(entityTarget);
                 // shut down for rest of scenario, so we actually kill it
@@ -70,7 +70,7 @@ public class BATaserHandler extends AmmoWeaponHandler {
                 vPhaseReport.add(r);
                 entityTarget.destroyLocation(hit.getLocation());
                 // Check to see if the squad has been eliminated
-                if (entityTarget.getTransferLocation(hit).getLocation() == 
+                if (entityTarget.getTransferLocation(hit).getLocation() ==
                         Entity.LOC_DESTROYED) {
                     vPhaseReport.addAll(gameManager.destroyEntity(entityTarget,
                             "all troopers eliminated", false));
@@ -139,7 +139,7 @@ public class BATaserHandler extends AmmoWeaponHandler {
             // kill the firing trooper
             // TODO: should just be shut down for remainder of scenario
             vPhaseReport.addAll(gameManager.criticalEntity(ae, weapon.getLocation(),
-                    false, 0, false, false, 0));
+                    false, 0, false, false, 0, ae));
         }
         return done;
     }

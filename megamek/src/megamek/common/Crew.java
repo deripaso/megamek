@@ -1137,11 +1137,7 @@ public class Crew implements Serializable {
 
   public Roll rollGunnerySkill(Entity entity, String rolldescription) {
     if (entity.getOwner().isBot()) {
-      if (getOptions().booleanOption(OptionsConstants.PILOT_APTITUDE_PILOTING)) {
-        return Compute.rollD6(3, 2);
-      }
-
-      return Compute.rollD6(2);
+      return rollGunnerySkill();
     }
 
     if (getOptions().booleanOption(OptionsConstants.PILOT_APTITUDE_PILOTING)) {
@@ -1151,11 +1147,7 @@ public class Crew implements Serializable {
   }
     public Roll rollPilotingSkill(Entity entity, String rolldescription) {
       if (entity.getOwner().isBot()) {
-        if (getOptions().booleanOption(OptionsConstants.PILOT_APTITUDE_PILOTING)) {
-            return Compute.rollD6(3, 2);
-        }
-
-        return Compute.rollD6(2);
+        return rollPilotingSkill();
       }
 
         if (getOptions().booleanOption(OptionsConstants.PILOT_APTITUDE_PILOTING)) {
