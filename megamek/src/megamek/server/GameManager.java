@@ -21446,7 +21446,6 @@ public class GameManager implements IGameManager {
                             rollCalc = rollValue + " [" + diceRoll.getIntValue() + " + 1] max 12";
                         }
 
-                        int rollTarget = Compute.getConsciousnessNumber(e.getCrew().getHits(pos));
                         Report r = new Report(6029);
                         r.subject = e.getId();
                         r.add(e.getCrew().getCrewType().getRoleName(pos));
@@ -27010,7 +27009,7 @@ public class GameManager implements IGameManager {
             r.newlines = 0;
             vDesc.addElement(r);
             hits = 0;
-            int roll;
+            //int roll;
             if (game.getOptions().booleanOption(OptionsConstants.MAN_DETERMINE_CRITICALS) && !en.getOwner().isBot()) {
               String rollDescription = en.getShortName()+" Critical Hit Effect";
              roll = Compute.manualD6(2, causeOf, rollDescription);
