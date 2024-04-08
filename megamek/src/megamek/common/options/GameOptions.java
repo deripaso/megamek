@@ -340,7 +340,6 @@ public class GameOptions extends AbstractOptions {
       addOption(manualinput, OptionsConstants.MAN_FACING_DIRECTION, false);
       addOption(manualinput, OptionsConstants.MAN_SPOTLIGHT_HIT, false);
       addOption(manualinput, OptionsConstants.MAN_UNJAM, false);
-
     }
 
     public Vector<IOption> loadOptions() {

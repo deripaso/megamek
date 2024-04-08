@@ -92,7 +92,7 @@ public class GameCFREvent extends GameEvent {
     }
 
     @Override
-    public String getEventName() { //TODO - add new descriptions
+    public String getEventName() { //TODO - add new sub-phase descriptions
         String evtName = "Client Feedback Request, ";
         switch (cfrType) {
             case CFR_DOMINO_EFFECT:
@@ -200,21 +200,21 @@ public class GameCFREvent extends GameEvent {
         tagTargetTypes = new ArrayList<>(targetTypes);
     }
     public void setRollTitle (String title) {
-      rollTitle = title;
+        rollTitle = title;
     }
     public String getRollTitle(){
-      return rollTitle;
+        return rollTitle;
     }
     public void setRollDescription (String description) {
-      rollDescription = description;
+        rollDescription = description;
     }
     public String getRollDescription(){
-      return rollDescription;
+        return rollDescription;
     }
     public void setNumDice(int dice) {
-      numDice = dice;
+        numDice = dice;
     }
     public int getNumDice(){
-      return numDice;
+        return numDice;
     }
 }

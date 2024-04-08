@@ -174,7 +174,8 @@ public enum PacketCommand {
 
     public boolean isCFR() {
         return isCFRDominoEffect() || isCFRAMSAssign() || isCFRAPDSAssign() || isCFRHiddenPBS()
-                || isCFRTeleguidedTarget() || isCFRTagTarget() || isCFRManualInitiativeRoll() || isCFRManualIntD6() || isCFRManualRollD6(); //TODO - new enums
+                || isCFRTeleguidedTarget() || isCFRTagTarget() || isCFRManualInitiativeRoll()
+                || isCFRManualIntD6() || isCFRManualRollD6();
     }
     //endregion Boolean Comparison Methods
 }
