@@ -40,6 +40,7 @@ import megamek.common.planetaryconditions.Light;
 import megamek.common.planetaryconditions.PlanetaryConditions;
 import megamek.common.planetaryconditions.Wind;
 import megamek.common.preference.PreferenceManager;
+import megamek.common.service.AutosaveService;
 import megamek.common.util.*;
 import megamek.common.util.fileUtils.MegaMekFile;
 import megamek.common.verifier.*;
@@ -139,6 +140,8 @@ public class GameManager implements IGameManager {
      * Keeps track of which player made a request to become Game Master.
      */
     private Player playerRequestingGameMaster = null;
+
+    private AutosaveService asService = new AutosaveService();
 
     /**
      * Special packet queue for client feedback requests.
@@ -1894,6 +1897,7 @@ public class GameManager implements IGameManager {
 
                 if (!game.shouldDeployThisRound()) {
                     incrementAndSendGameRound();
+                    asService.performRollingAutosave(this);
                 }
 
                 // setIneligible(phase);
