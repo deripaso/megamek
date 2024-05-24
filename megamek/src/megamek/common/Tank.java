@@ -18,6 +18,7 @@ import megamek.common.cost.CombatVehicleCostCalculator;
 import megamek.common.enums.AimingMode;
 import megamek.common.enums.GamePhase;
 import megamek.common.enums.MPBoosters;
+import megamek.common.equipment.AmmoMounted;
 import megamek.common.options.OptionsConstants;
 import megamek.common.planetaryconditions.PlanetaryConditions;
 import megamek.common.weapons.flamers.VehicleFlamerWeapon;
@@ -2441,12 +2442,12 @@ public class Tank extends Entity {
         // for ammo, each type of ammo takes one slots, regardless of
         // submunition type
         Set<String> foundAmmo = new HashSet<>();
-        for (Mounted ammo : getAmmo()) {
+        for (AmmoMounted ammo : getAmmo()) {
             // don't count oneshot ammo
-            if (ammo.isOneShotAmmo()) {
+            if (ammo.isOneShot()) {
                 continue;
             }
-            AmmoType at = (AmmoType) ammo.getType();
+            AmmoType at = ammo.getType();
             if (!foundAmmo.contains(at.getAmmoType() + ":" + at.getRackSize())) {
                 usedSlots++;
                 foundAmmo.add(at.getAmmoType() + ":" + at.getRackSize());
@@ -3072,5 +3073,10 @@ public class Tank extends Entity {
     @Override
     public boolean getsAutoExternalSearchlight() {
         return true;
+    }
+
+    @Override
+    public int getGenericBattleValue() {
+        return (int) Math.round(Math.exp(2.866 + 0.987*Math.log(getWeight())));
     }
 }

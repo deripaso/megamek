@@ -20,9 +20,9 @@ import megamek.client.ui.swing.util.UIUtil;
 import megamek.common.*;
 import megamek.common.alphaStrike.AlphaStrikeElement;
 import megamek.common.annotations.Nullable;
+import megamek.common.equipment.WeaponMounted;
 import megamek.common.options.GameOptions;
 import megamek.common.options.OptionsConstants;
-import megamek.common.planetaryconditions.Light;
 import megamek.common.planetaryconditions.PlanetaryConditions;
 import megamek.common.preference.PreferenceManager;
 import megamek.common.templates.TROView;
@@ -752,12 +752,12 @@ public final class UnitToolTip {
             return new StringBuilder();
         }
 
-        ArrayList<Mounted> weapons = entity.getWeaponList();
+        List<WeaponMounted> weapons = entity.getWeaponList();
         HashMap<String, WeaponInfo> wpInfos = new HashMap<>();
         // Gather names, counts, Clan/IS
         WeaponInfo currentWp;
-        for (Mounted curWp: weapons) {
-            WeaponType wtype = (WeaponType) curWp.getType();
+        for (WeaponMounted curWp: weapons) {
+            WeaponType wtype = curWp.getType();
             if (isNotTTRelevant(wtype)) {
                 continue;
             }
@@ -1504,13 +1504,13 @@ public final class UnitToolTip {
             if (gameOptions.booleanOption(OptionsConstants.ADVANCED_TACOPS_SENSORS)
                     || (gameOptions.booleanOption(OptionsConstants.ADVAERORULES_STRATOPS_ADVANCED_SENSORS)) && entity.isSpaceborne()) {
                 String visualRange = Compute.getMaxVisualRange(entity, false) + "";
-                if (conditions.getLight().isDarkerThan(Light.DAY)) {
+                if (conditions.getLight().isDuskOrFullMoonOrMoonlessOrPitchBack()) {
                     visualRange += " (" + Compute.getMaxVisualRange(entity, true) + ")";
                 }
                 result += addToTT("Sensors", BR, getSensorDesc(entity), visualRange);
             } else {
                 String visualRange = Compute.getMaxVisualRange(entity, false) + "";
-                if (conditions.getLight().isDarkerThan(Light.DAY)) {
+                if (conditions.getLight().isDuskOrFullMoonOrMoonlessOrPitchBack()) {
                     visualRange += " (" + Compute.getMaxVisualRange(entity, true) + ")";
                 }
                 result += addToTT("Visual", BR, visualRange);

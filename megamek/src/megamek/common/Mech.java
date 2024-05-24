@@ -20,6 +20,7 @@ import megamek.client.ui.swing.calculationReport.CalculationReport;
 import megamek.common.cost.MekCostCalculator;
 import megamek.common.enums.AimingMode;
 import megamek.common.enums.MPBoosters;
+import megamek.common.equipment.MiscMounted;
 import megamek.common.loaders.MtfFile;
 import megamek.common.options.IBasicOption;
 import megamek.common.options.IOption;
@@ -1421,7 +1422,7 @@ public abstract class Mech extends Entity {
 
         for (int i = 0; i < toAllocate; i++) {
             try {
-                addEquipment(new Mounted(this, sinkType), Entity.LOC_NONE, false);
+                addEquipment(Mounted.createMounted(this, sinkType), Entity.LOC_NONE, false);
             } catch (LocationFullException ignored) {
                 // um, that's impossible.
             }
@@ -2788,7 +2789,7 @@ public abstract class Mech extends Entity {
             }
             if (explosiveFound) {
                 try {
-                    addEquipment(new Mounted(this, clCase), i, false);
+                    addEquipment(Mounted.createMounted(this, clCase), i, false);
                 } catch (LocationFullException ex) {
                     // um, that's impossible.
                 }
@@ -2800,8 +2801,8 @@ public abstract class Mech extends Entity {
      * Adds equipment without adding slots for it.
      * Specifically for targeting computers, which when loaded from a file don't have a correct size and get loaded slot by slot
      */
-    public Mounted addTargCompWithoutSlots(EquipmentType etype, int loc, boolean omniPod, boolean armored) throws LocationFullException {
-        Mounted mounted = new Mounted(this, etype);
+    public MiscMounted addTargCompWithoutSlots(MiscType etype, int loc, boolean omniPod, boolean armored) throws LocationFullException {
+        MiscMounted mounted = (MiscMounted) MiscMounted.createMounted(this, etype);
         mounted.setOmniPodMounted(omniPod);
         mounted.setArmored(armored);
         super.addEquipment(mounted, loc, false);
@@ -2810,8 +2811,8 @@ public abstract class Mech extends Entity {
 
     public Mounted addEquipment(EquipmentType etype, EquipmentType etype2,
             int loc,  boolean omniPod, boolean armored) throws LocationFullException {
-        Mounted mounted = new Mounted(this, etype);
-        Mounted mounted2 = new Mounted(this, etype2);
+        Mounted mounted = Mounted.createMounted(this, etype);
+        Mounted mounted2 = Mounted.createMounted(this, etype2);
         mounted.setOmniPodMounted(omniPod);
         mounted2.setOmniPodMounted(omniPod);
         mounted.setArmored(armored);
@@ -4403,7 +4404,7 @@ public abstract class Mech extends Entity {
         sb.append(newLine);
 
         sb.append(MtfFile.HEAT_SINKS).append(heatSinks()).append(" ");
-        Optional<EquipmentType> heatSink = getMisc().stream()
+        Optional<MiscType> heatSink = getMisc().stream()
                 .filter(m -> m.getType().hasFlag(MiscType.F_HEAT_SINK)
                     || m.getType().hasFlag(MiscType.F_DOUBLE_HEAT_SINK))
                 .map(Mounted::getType).findFirst();
@@ -5315,12 +5316,10 @@ public abstract class Mech extends Entity {
                 continue;
             }
 
-            Mounted m = cs.getMount();
-
-            EquipmentType type = m.getType();
-            if ((type instanceof MiscType) && ((MiscType) type).isShield()) {
-                rate -= m.getDamageAbsorption(this, m.getLocation());
-                m.damageTaken++;
+            Mounted<?> m = cs.getMount();
+            if ((m instanceof MiscMounted) && ((MiscMounted) m).getType().isShield()) {
+                rate -= ((MiscMounted) m).getDamageAbsorption(this, m.getLocation());
+                ((MiscMounted) m).takeDamage(1);
                 return Math.max(0, rate);
             }
         }
@@ -6472,6 +6471,11 @@ public abstract class Mech extends Entity {
     @Override
     public boolean isIndustrialMek() {
         return isIndustrial();
+    }
+
+    @Override
+    public int getGenericBattleValue() {
+        return (int) Math.round(Math.exp(3.729 + 0.889*Math.log(getWeight())));
     }
 
     @Override

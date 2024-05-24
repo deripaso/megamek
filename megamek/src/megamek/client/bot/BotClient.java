@@ -13,6 +13,7 @@
  */
 package megamek.client.bot;
 
+import megamek.client.AbstractClient;
 import megamek.client.Client;
 import megamek.client.bot.princess.CardinalEdge;
 import megamek.client.ui.swing.ClientGUI;
@@ -21,11 +22,13 @@ import megamek.common.actions.EntityAction;
 import megamek.common.actions.WeaponAttackAction;
 import megamek.common.annotations.Nullable;
 import megamek.common.enums.GamePhase;
+import megamek.common.equipment.WeaponMounted;
 import megamek.common.event.*;
 import megamek.common.net.packets.Packet;
 import megamek.common.options.OptionsConstants;
 import megamek.common.pathfinder.BoardClusterTracker;
 import megamek.common.preference.PreferenceManager;
+import megamek.common.Report;
 import megamek.common.util.BoardUtilities;
 import megamek.common.util.StringUtil;
 import org.apache.logging.log4j.LogManager;
@@ -1005,13 +1008,12 @@ public abstract class BotClient extends Client {
                 fHits = expectedHitsByRackSize[wt.getRackSize()];
             }
             // adjust for previous AMS
-            ArrayList<Mounted> vCounters = waa.getCounterEquipment();
+            List<WeaponMounted> vCounters = waa.getCounterEquipment();
             if (wt.hasFlag(WeaponType.F_MISSILE) && vCounters != null) {
-                for (Mounted vCounter : vCounters) {
-                    EquipmentType type = vCounter.getType();
-                    if ((type instanceof WeaponType)
-                        && type.hasFlag(WeaponType.F_AMS)) {
-                        float fAMS = 3.5f * ((WeaponType) type).getDamage();
+                for (WeaponMounted vCounter : vCounters) {
+                    WeaponType type = vCounter.getType();
+                    if (type.hasFlag(WeaponType.F_AMS)) {
+                        float fAMS = 3.5f * type.getDamage();
                         fHits = Math.max(0.0f, fHits - fAMS);
                     }
                 }
@@ -1146,15 +1148,16 @@ public abstract class BotClient extends Client {
     }
 
     @Override
-    protected void correctName(Packet inP) throws Exception {
+    protected void correctName(Packet inP) {
         // If we have a clientgui, it keeps track of a Name -> Client map, and
         //  we need to update that map with this name change.
         if (getClientGUI() != null) {
-            Map<String, Client> bots = getClientGUI().getLocalBots();
+            Map<String, AbstractClient> bots = getClientGUI().getLocalBots();
             String oldName = getName();
             String newName = (String) (inP.getObject(0));
             if (!this.equals(bots.get(oldName))) {
-                throw new Exception();
+                LogManager.getLogger().error("Name correction arrived at incorrect BotClient!");
+                return;
             }
             bots.remove(oldName);
             bots.put(newName, this);
@@ -1185,7 +1188,7 @@ public abstract class BotClient extends Client {
      * Let's save ourselves a little processing time and not deal with any of it
      */
     @Override
-    public String receiveReport(Vector<Report> v) {
+    public String receiveReport(List<Report> reports) {
         return "";
     }
 

@@ -18,11 +18,12 @@ package megamek.common;
 import megamek.common.MovePath.MoveStepType;
 import megamek.common.actions.*;
 import megamek.common.annotations.Nullable;
+import megamek.common.equipment.AmmoMounted;
+import megamek.common.equipment.WeaponMounted;
 import megamek.common.enums.*;
 import megamek.common.options.OptionsConstants;
 import megamek.common.planetaryconditions.Atmosphere;
 import megamek.common.planetaryconditions.IlluminationLevel;
-import megamek.common.planetaryconditions.Light;
 import megamek.common.planetaryconditions.PlanetaryConditions;
 import megamek.common.weapons.DiveBombAttack;
 import megamek.common.weapons.InfantryAttack;
@@ -263,6 +264,20 @@ public class Compute {
      */
     public static float randomFloat() {
         return random.randomFloat();
+    }
+
+    /**
+     * Selects a random element from a list
+     * @param list The list of items to select from
+     * @return     An element in the list
+     * @param <T>  The list type
+     */
+    public static<T> T randomListElement(List<T> list) {
+        if (list.isEmpty()) {
+            throw new IllegalArgumentException("Tried to select random element from empty list");
+        } else {
+            return list.get(randomInt(list.size()));
+        }
     }
 
     /**
@@ -1120,9 +1135,9 @@ public class Compute {
      *
      * @return the modifiers
      */
-    public static ToHitData getRangeMods(Game game, Entity ae, Mounted weapon, Mounted ammo,
+    public static ToHitData getRangeMods(Game game, Entity ae, WeaponMounted weapon, AmmoMounted ammo,
                                          Targetable target) {
-        WeaponType wtype = (WeaponType) weapon.getType();
+        WeaponType wtype = weapon.getType();
         int[] weaponRanges = wtype.getRanges(weapon, ammo);
         boolean isAttackerInfantry = (ae instanceof Infantry);
         boolean isAttackerBA = (ae instanceof BattleArmor);
@@ -1332,7 +1347,7 @@ public class Compute {
         }
         int maxRange = wtype.getMaxRange(weapon, ammo);
 
-        // if aero and greater than max range then swith to range_out
+        // if aero and greater than max range then switch to range_out
         if ((ae.isAirborne() || (ae.usesWeaponBays() && game.getBoard()
                 .onGround())) && (range > maxRange)) {
             range = RangeType.RANGE_OUT;
@@ -2600,7 +2615,7 @@ public class Compute {
 
         if (attacker.getCrew().getOptions().stringOption(OptionsConstants.MISC_ENV_SPECIALIST).equals(Crew.ENVSPC_LIGHT)
                 && !target.isIlluminated()
-                && game.getPlanetaryConditions().getLight().isDarkerThan(Light.FULL_MOON)) {
+                && game.getPlanetaryConditions().getLight().isMoonlessOrSolarFlareOrPitchBack()) {
             toHit.addModifier(-1, "light specialist");
         }
 
@@ -3131,8 +3146,8 @@ public class Compute {
         int infShootingStrength = 0;
         double infDamagePerTrooper = 0;
 
-        Mounted weapon = attacker.getEquipment(waa.getWeaponId());
-        Mounted lnk_guide;
+        WeaponMounted weapon = (WeaponMounted) attacker.getEquipment(waa.getWeaponId());
+        Mounted<?> lnk_guide;
 
         ToHitData hitData = waa.toHit(g, allECMInfo);
 
@@ -3208,18 +3223,22 @@ public class Compute {
             }
         }
 
-        if (use_table == true) {
+        if (use_table) {
             if (!(attacker instanceof BattleArmor)) {
                 if (weapon.getLinked() == null) {
                     return 0.0f;
                 }
             }
+
             AmmoType at = null;
-            if ((weapon.getLinked() != null)
+            if (waa.getAmmoId() != WeaponAttackAction.UNASSIGNED) {
+                // If a preferred ammo has been set for this WAA, use that
+                at = waa.getEntity(g).getAmmo(waa.getAmmoId()).getType();
+            } else if ((weapon.getLinked() != null)
                     && (weapon.getLinked().getType() instanceof AmmoType)) {
                 at = (AmmoType) weapon.getLinked().getType();
-                fDamage = at.getDamagePerShot();
             }
+            fDamage = (at != null) ? at.getDamagePerShot() : fDamage;
 
             float fHits = 0.0f;
             if ((wt.getRackSize() != 40) && (wt.getRackSize() != 30)) {
@@ -3227,8 +3246,10 @@ public class Compute {
             } else {
                 fHits = 2.0f * expectedHitsByRackSize[wt.getRackSize() / 2];
             }
+            // Streaks / iATMs will _all_ hit, if they hit at all.
             if (((wt.getAmmoType() == AmmoType.T_SRM_STREAK)
                     || (wt.getAmmoType() == AmmoType.T_LRM_STREAK))
+                    || (wt.getAmmoType() == AmmoType.T_IATM)
                     && !ComputeECM.isAffectedByAngelECM(attacker, attacker
                             .getPosition(), waa.getTarget(g).getPosition(),
                             allECMInfo)) {
@@ -3340,10 +3361,10 @@ public class Compute {
             // adjust for previous AMS
             if ((wt.getDamage() == WeaponType.DAMAGE_BY_CLUSTERTABLE)
                 && wt.hasFlag(WeaponType.F_MISSILE)) {
-                ArrayList<Mounted> vCounters = waa.getCounterEquipment();
+                List<WeaponMounted> vCounters = waa.getCounterEquipment();
                 if (vCounters != null) {
-                    for (int x = 0; x < vCounters.size(); x++) {
-                        EquipmentType type = vCounters.get(x).getType();
+                    for (WeaponMounted vCounter : vCounters) {
+                        EquipmentType type = vCounter.getType();
                         if ((type instanceof WeaponType) && type.hasFlag(WeaponType.F_AMS)) {
                             fHits *= 0.6f;
                         }
@@ -3382,9 +3403,8 @@ public class Compute {
                 if (attacker.usesWeaponBays()) {
                     double av = 0;
                     double threat = 1;
-                    for (int wId : weapon.getBayWeapons()) {
-                        Mounted bayW = attacker.getEquipment(wId);
-                        WeaponType bayWType = ((WeaponType) bayW.getType());
+                    for (WeaponMounted bayW : weapon.getBayWeapons()) {
+                        WeaponType bayWType = bayW.getType();
                         //Capital weapons have a different range scale
                         if (wt.isCapital()) {
                             // Capital missiles get higher priority than standard missiles:
@@ -3553,7 +3573,7 @@ public class Compute {
 
         Entity shooter, target;
 
-        Mounted fabin, best_bin;
+        AmmoMounted fabin, best_bin;
         AmmoType abin_type = new AmmoType();
         AmmoType fabin_type = new AmmoType();
         WeaponType wtype = new WeaponType();
@@ -3578,11 +3598,10 @@ public class Compute {
         fabin = null;
         best_bin = null;
 
-        for (Mounted abin : shooter.getAmmo()) {
-            if (shooter.loadWeapon(shooter.getEquipment(atk.getWeaponId()),
-                                   abin)) {
+        for (AmmoMounted abin : shooter.getAmmo()) {
+            if (shooter.loadWeapon((WeaponMounted) shooter.getEquipment(atk.getWeaponId()), abin)) {
                 if (abin.getUsableShotsLeft() > 0) {
-                    abin_type = (AmmoType) abin.getType();
+                    abin_type = abin.getType();
                     if (!AmmoType.canDeliverMinefield(abin_type)) {
                         fabin = abin;
                         fabin_type = (AmmoType) fabin.getType();
@@ -3595,9 +3614,8 @@ public class Compute {
         // To save processing time, lets see if we have more than one type of
         // bin
         // Thunder-type ammos and empty bins are excluded from the list
-        for (Mounted abin : shooter.getAmmo()) {
-            if (shooter.loadWeapon(shooter.getEquipment(atk.getWeaponId()),
-                                   abin)) {
+        for (AmmoMounted abin : shooter.getAmmo()) {
+            if (shooter.loadWeapon((WeaponMounted) shooter.getEquipment(atk.getWeaponId()), abin)) {
                 if (abin.getUsableShotsLeft() > 0) {
                     abin_type = (AmmoType) abin.getType();
                     if (!AmmoType.canDeliverMinefield(abin_type)) {
@@ -3634,14 +3652,14 @@ public class Compute {
             best_bin = fabin;
 
             // For each valid ammo bin
-            for (Mounted abin : shooter.getAmmo()) {
-                if (shooter.loadWeapon(shooter.getEquipment(atk.getWeaponId()), abin)) {
+            for (AmmoMounted abin : shooter.getAmmo()) {
+                if (shooter.loadWeapon((WeaponMounted) shooter.getEquipment(atk.getWeaponId()), abin)) {
                     if (abin.getUsableShotsLeft() > 0) {
                         abin_type = (AmmoType) abin.getType();
                         if (!AmmoType.canDeliverMinefield(abin_type)) {
 
                             // Load weapon with specified bin
-                            shooter.loadWeapon(shooter.getEquipment(atk.getWeaponId()), abin);
+                            shooter.loadWeapon((WeaponMounted) shooter.getEquipment(atk.getWeaponId()), abin);
                             atk.setAmmoId(shooter.getEquipmentNum(abin));
                             atk.setAmmoMunitionType(abin_type.getMunitionType());
 
@@ -3825,7 +3843,7 @@ public class Compute {
 
             // Now that the best bin has been found, reload the weapon with
             // it
-            shooter.loadWeapon(shooter.getEquipment(atk.getWeaponId()), best_bin);
+            shooter.loadWeapon((WeaponMounted) shooter.getEquipment(atk.getWeaponId()), best_bin);
             atk.setAmmoId(shooter.getEquipmentNum(best_bin));
             atk.setAmmoMunitionType(abin_type.getMunitionType());
         }
@@ -4022,10 +4040,20 @@ public class Compute {
         Vector<Coords> tPosV = new Vector<>();
         tPosV.add(target.getPosition());
         // check for secondary positions
-        if ((target instanceof Entity)
-            && (null != ((Entity) target).getSecondaryPositions())) {
-            for (int key : ((Entity) target).getSecondaryPositions().keySet()) {
-                tPosV.add(((Entity) target).getSecondaryPositions().get(key));
+        if (target instanceof Entity) {
+            Map<Integer, Coords> secondaryPositions = ((Entity) target).getSecondaryPositions();
+            if (null != secondaryPositions && !secondaryPositions.isEmpty()) {
+                // Some units fill additional hexes
+                for (Coords hex : secondaryPositions.values()) {
+                    // Some hexes may not be configured, or be invalid
+                    if (null != hex) {
+                        tPosV.add(hex);
+                    } else {
+                        LogManager.getLogger().warn(
+                                "Entity " + ((Entity) target).getDisplayName() + " has null secondary location!"
+                        );
+                    }
+                }
             }
         }
 
@@ -4062,6 +4090,11 @@ public class Compute {
         // if any of the destination coords are in the right place, then return
         // true
         for (Coords dest : destV) {
+            // Sometimes we get non-null destV containing null Coord entries.
+            if (null == dest) {
+                return true;
+            }
+
             // calculate firing angle
             int fa = src.degree(dest) - (facing * 60);
             if (fa < 0) {
@@ -5694,7 +5727,7 @@ public class Compute {
         // must be in control
         if (a.isOutControlTotal()) {
             reason.append("the attacker is out of control");
-        } else if (attacker.getBombs(AmmoType.F_SPACE_BOMB).size() < 1) {
+        } else if (attacker.getBombs(AmmoType.F_SPACE_BOMB).isEmpty()) {
             reason.append("the attacker has no useable bombs");
         } else if (!rightFacing) {
             reason.append("the attacker is not facing the direction of travel");
@@ -6652,13 +6685,13 @@ public class Compute {
     /**
      * @return the maximum damage that a set of weapons can generate.
      */
-    public static int computeTotalDamage(List<Mounted> weaponList){
+    public static int computeTotalDamage(List<WeaponMounted> weaponList){
         int totalDmg = 0;
-        for (Mounted weapon : weaponList) {
+        for (WeaponMounted weapon : weaponList) {
             if (!weapon.isBombMounted() && weapon.isCrippled()) {
                 continue;
             }
-            WeaponType type = (WeaponType) weapon.getType();
+            WeaponType type = weapon.getType();
             if (type.getDamage() == WeaponType.DAMAGE_VARIABLE) {
                 // Estimate rather than compute exact bay / trooper damage sum.
                 totalDmg += type.getRackSize();
@@ -7103,11 +7136,11 @@ public class Compute {
 
     }
 
-    public static boolean allowAimedShotWith(Mounted weapon, AimingMode aimingMode) {
-        WeaponType wtype = (WeaponType) weapon.getType();
+    public static boolean allowAimedShotWith(WeaponMounted weapon, AimingMode aimingMode) {
+        WeaponType wtype = weapon.getType();
         boolean isWeaponInfantry = wtype.hasFlag(WeaponType.F_INFANTRY);
         boolean usesAmmo = (wtype.getAmmoType() != AmmoType.T_NA) && !isWeaponInfantry;
-        Mounted ammo = usesAmmo ? weapon.getLinked() : null;
+        AmmoMounted ammo = usesAmmo ? weapon.getLinkedAmmo() : null;
         AmmoType atype = ammo == null ? null : (AmmoType) ammo.getType();
 
         // Leg and swarm attacks can't be aimed.

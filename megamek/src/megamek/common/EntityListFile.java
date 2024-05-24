@@ -16,6 +16,7 @@ package megamek.common;
 import megamek.MMConstants;
 import megamek.client.Client;
 import megamek.codeUtilities.StringUtility;
+import megamek.common.equipment.WeaponMounted;
 import megamek.common.force.Force;
 import megamek.common.options.OptionsConstants;
 import megamek.common.options.PilotOptions;
@@ -76,7 +77,7 @@ public class EntityListFile {
      *            available to absorb additional critical hits.
      * @return a <code>String</code> describing the slot.
      */
-    private static String formatSlot(String index, Mounted mount, boolean isHit, boolean isDestroyed,
+    private static String formatSlot(String index, Mounted<?> mount, boolean isHit, boolean isDestroyed,
                                      boolean isRepairable, boolean isMissing, int indentLvl) {
         StringBuilder output = new StringBuilder();
 
@@ -259,7 +260,7 @@ public class EntityListFile {
             }
 
             //
-            Map<Mounted, Integer> baySlotMap = new HashMap<>();
+            Map<WeaponMounted, Integer> baySlotMap = new HashMap<>();
 
             // Walk through the slots in this location.
             for (int loop = 0; loop < entity.getNumberOfCriticals(loc); loop++) {
@@ -284,16 +285,16 @@ public class EntityListFile {
                 } else {
 
                     // Yup. If the equipment isn't a system, get it.
-                    Mounted mount = null;
+                    Mounted<?> mount = null;
                     if (CriticalSlot.TYPE_EQUIPMENT == slot.getType()) {
                         mount = slot.getMount();
                     }
 
                     // if the "equipment" is a weapons bay,
                     // then let's make a note of it
-                    if (entity.usesWeaponBays() && (mount != null)
-                            && !mount.getBayAmmo().isEmpty()) {
-                        baySlotMap.put(slot.getMount(), loop + 1);
+                    if (entity.usesWeaponBays() && (mount instanceof WeaponMounted)
+                            && !((WeaponMounted) mount).getBayAmmo().isEmpty()) {
+                        baySlotMap.put((WeaponMounted) slot.getMount(), loop + 1);
                     }
 
                     if ((mount != null) && (mount.getType() instanceof BombType)) {
@@ -346,7 +347,7 @@ public class EntityListFile {
 
                         String bayIndex = "";
 
-                        for (Mounted bay : baySlotMap.keySet()) {
+                        for (WeaponMounted bay : baySlotMap.keySet()) {
                             if (bay.ammoInBay(entity.getEquipmentNum(mount))) {
                                 bayIndex = String.valueOf(baySlotMap.get(bay));
                             }
@@ -747,10 +748,11 @@ public class EntityListFile {
                 output.write(String.valueOf(entity.getQuirkList("::")));
             }
             if ((entity.getGame() != null) && (entity.getC3Master() != null)) {
-                output.write("\" " + MULParser.ATTR_C3MASTERIS + "=\"");
-                output.write(entity.getGame()
-                        .getEntity(entity.getC3Master().getId())
-                        .getC3UUIDAsString());
+                Entity entityC3MAster = entity.getGame().getEntity(entity.getC3Master().getId());
+                if (entityC3MAster.getC3UUIDAsString() != null) {
+                    output.write("\" " + MULParser.ATTR_C3MASTERIS + "=\"");
+                    output.write(entityC3MAster.getC3UUIDAsString());
+                }
             }
             if (entity.hasC3() || entity.hasC3i() || entity.hasNavalC3()) {
                 if (entity.getC3UUIDAsString() != null) {
@@ -997,7 +999,8 @@ public class EntityListFile {
                 while (c3iList.hasNext()) {
                     final Entity C3iEntity = c3iList.next();
 
-                    if (C3iEntity.onSameC3NetworkAs(entity, true)) {
+                    if ((C3iEntity.getC3UUIDAsString() != null) &&
+                            C3iEntity.onSameC3NetworkAs(entity, true)) {
                         output.write(indentStr(indentLvl + 1) + "<" + MULParser.ELE_C3ILINK + " " + MULParser.ATTR_LINK + "=\"");
                         output.write(C3iEntity.getC3UUIDAsString());
                         output.write("\"/>\n");
@@ -1013,7 +1016,8 @@ public class EntityListFile {
                 while (NC3List.hasNext()) {
                     final Entity NC3Entity = NC3List.next();
 
-                    if (NC3Entity.onSameC3NetworkAs(entity, true)) {
+                    if ((NC3Entity.getC3UUIDAsString() != null) &&
+                            NC3Entity.onSameC3NetworkAs(entity, true)) {
                         output.write(indentStr(indentLvl + 1) + "<" + MULParser.ELE_NC3LINK + " " + MULParser.ATTR_LINK + "=\"");
                         output.write(NC3Entity.getC3UUIDAsString());
                         output.write("\"/>\n");

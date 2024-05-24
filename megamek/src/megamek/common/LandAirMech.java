@@ -14,8 +14,11 @@
 package megamek.common;
 
 import megamek.common.enums.MPBoosters;
+import megamek.common.equipment.AmmoMounted;
+import megamek.common.equipment.BombMounted;
+import megamek.common.equipment.MiscMounted;
+import megamek.common.equipment.WeaponMounted;
 import megamek.common.options.OptionsConstants;
-import megamek.common.planetaryconditions.Light;
 import megamek.common.planetaryconditions.PlanetaryConditions;
 import org.apache.logging.log4j.LogManager;
 
@@ -2049,18 +2052,18 @@ public class LandAirMech extends BipedMech implements IAero, IBomber {
 
         mounted.setBombMounted(true);
 
-        if (mounted.getType() instanceof BombType) {
-            bombList.add(mounted);
+        if (mounted instanceof BombMounted) {
+            bombList.add((BombMounted) mounted);
         }
 
-        if (mounted.getType() instanceof WeaponType) {
-            totalWeaponList.add(mounted);
-            weaponList.add(mounted);
+        if (mounted instanceof WeaponMounted) {
+            totalWeaponList.add((WeaponMounted) mounted);
+            weaponList.add((WeaponMounted) mounted);
             if (mounted.getType().hasFlag(WeaponType.F_ARTILLERY)) {
                 aTracker.addWeapon(mounted);
             }
             if (mounted.getType().hasFlag(WeaponType.F_ONESHOT) && (AmmoType.getOneshotAmmo(mounted) != null)) {
-                Mounted m = new Mounted(this, AmmoType.getOneshotAmmo(mounted));
+                AmmoMounted m = (AmmoMounted) Mounted.createMounted(this, AmmoType.getOneshotAmmo(mounted));
                 m.setShotsLeft(1);
                 mounted.setLinked(m);
                 // Oneshot ammo will be identified by having a location
@@ -2068,19 +2071,19 @@ public class LandAirMech extends BipedMech implements IAero, IBomber {
                 addEquipment(m, Entity.LOC_NONE, false);
             }
         }
-        if (mounted.getType() instanceof AmmoType) {
-            ammoList.add(mounted);
+        if (mounted instanceof AmmoMounted) {
+            ammoList.add((AmmoMounted) mounted);
         }
-        if (mounted.getType() instanceof MiscType) {
-            miscList.add(mounted);
+        if (mounted instanceof MiscMounted) {
+            miscList.add((MiscMounted) mounted);
         }
         equipmentList.add(mounted);
     }
 
     @Override
-    public Mounted addEquipment(EquipmentType etype, int loc, boolean rearMounted) throws LocationFullException {
+    public Mounted<?> addEquipment(EquipmentType etype, int loc, boolean rearMounted) throws LocationFullException {
         if (etype instanceof BombType) {
-            Mounted mounted = new Mounted(this, etype);
+            Mounted<?> mounted = Mounted.createMounted(this, etype);
             addBomb(mounted, loc);
             return mounted;
         } else {
@@ -2092,7 +2095,7 @@ public class LandAirMech extends BipedMech implements IAero, IBomber {
     public boolean canSpot() {
         if (getConversionMode() == CONV_MODE_FIGHTER) {
             boolean hiresLighted = hasWorkingMisc(MiscType.F_HIRES_IMAGER)
-                    && game.getPlanetaryConditions().getLight().isLighterThan(Light.FULL_MOON);
+                    && game.getPlanetaryConditions().getLight().isDayOrDusk();
             return !isAirborne()
                     || hasWorkingMisc(MiscType.F_RECON_CAMERA)
                     || hasWorkingMisc(MiscType.F_INFRARED_IMAGER)

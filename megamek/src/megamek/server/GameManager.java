@@ -25,7 +25,7 @@ import megamek.common.actions.*;
 import megamek.common.annotations.Nullable;
 import megamek.common.containers.PlayerIDandList;
 import megamek.common.enums.*;
-import megamek.common.equipment.ArmorType;
+import megamek.common.equipment.*;
 import megamek.common.event.GameVictoryEvent;
 import megamek.common.force.Force;
 import megamek.common.force.Forces;
@@ -36,10 +36,11 @@ import megamek.common.options.IBasicOption;
 import megamek.common.options.IOption;
 import megamek.common.options.OptionsConstants;
 import megamek.common.planetaryconditions.Atmosphere;
-import megamek.common.planetaryconditions.Light;
 import megamek.common.planetaryconditions.PlanetaryConditions;
 import megamek.common.planetaryconditions.Wind;
 import megamek.common.preference.PreferenceManager;
+import megamek.common.Report;
+import megamek.common.ReportMessages;
 import megamek.common.service.AutosaveService;
 import megamek.common.util.*;
 import megamek.common.util.fileUtils.MegaMekFile;
@@ -63,7 +64,7 @@ import java.util.zip.GZIPOutputStream;
 /**
  * Manages the Game and processes player actions.
  */
-public class GameManager implements IGameManager {
+public class GameManager extends AbstractGameManager {
     private static class EntityTargetPair {
         Entity ent;
 
@@ -507,7 +508,7 @@ public class GameManager implements IGameManager {
         }
 
         // make sure the game advances
-        if (getGame().getPhase().hasTurns() && (null != getGame().getTurn())) {
+        if (getGame().getPhase().usesTurns() && (null != getGame().getTurn())) {
             if (getGame().getTurn().isValid(player.getId(), getGame())) {
                 sendGhostSkipMessage(player);
             }
@@ -597,27 +598,6 @@ public class GameManager implements IGameManager {
         }
     }
 
-    public void send(Packet p) {
-        Server.getServerInstance().send(p);
-    }
-
-    public void send(int connId, Packet p) {
-        Server.getServerInstance().send(connId, p);
-    }
-
-    public void transmitPlayerUpdate(Player p) {
-        Server.getServerInstance().transmitPlayerUpdate(p);
-    }
-
-    /**
-     * Sends out the player info updates for all players to all connections
-     */
-    private void transmitAllPlayerUpdates() {
-        for (var player: getGame().getPlayersVector()) {
-            transmitPlayerUpdate(player);
-        }
-    }
-
     public void sendServerChat(String message) {
         Server.getServerInstance().sendServerChat(message);
     }
@@ -640,8 +620,8 @@ public class GameManager implements IGameManager {
      */
     @Override
     public void sendCurrentInfo(int connId) {
-        send(connId, createGameSettingsPacket());
-        send(connId, createPlanetaryConditionsPacket());
+        send(connId, packetHelper.createGameSettingsPacket());
+        send(connId, packetHelper.createPlanetaryConditionsPacket());
 
         Player player = getGame().getPlayer(connId);
         if (null != player) {
@@ -651,15 +631,15 @@ public class GameManager implements IGameManager {
                 send(connId, createMapSettingsPacket());
                 send(createMapSizesPacket());
                 // Send Entities *after* the Lounge Phase Change
-                send(connId, new Packet(PacketCommand.PHASE_CHANGE, getGame().getPhase()));
+                send(connId, packetHelper.createPhaseChangePacket());
                 if (doBlind()) {
                     send(connId, createFilteredFullEntitiesPacket(player, null));
                 } else {
                     send(connId, createFullEntitiesPacket());
                 }
             } else {
-                send(connId, new Packet(PacketCommand.ROUND_UPDATE, getGame().getRoundCount()));
-                send(connId, createBoardPacket());
+                send(connId, packetHelper.createCurrentRoundNumberPacket());
+                send(connId, packetHelper.createBoardsPacket());
                 send(connId, createAllReportsPacket(player));
 
                 // Send entities *before* other phase changes.
@@ -670,25 +650,25 @@ public class GameManager implements IGameManager {
                 }
 
                 setPlayerDone(player, getGame().getEntitiesOwnedBy(player) <= 0);
-                send(connId, new Packet(PacketCommand.PHASE_CHANGE, getGame().getPhase()));
+                send(connId, packetHelper.createPhaseChangePacket());
             }
 
             // LOUNGE triggers a Game.reset() on the client, which wipes out
             // the PlanetaryCondition, so resend
             if (game.getPhase().isLounge()) {
-                send(connId, createPlanetaryConditionsPacket());
+                send(connId, packetHelper.createPlanetaryConditionsPacket());
             }
 
             if (game.getPhase().isFiring() || game.getPhase().isTargeting()
                     || game.getPhase().isOffboard() || game.getPhase().isPhysical()) {
                 // can't go above, need board to have been sent
-                send(connId, createAttackPacket(getGame().getActionsVector(), 0));
-                send(connId, createAttackPacket(getGame().getChargesVector(), 1));
-                send(connId, createAttackPacket(getGame().getRamsVector(), 1));
-                send(connId, createAttackPacket(getGame().getTeleMissileAttacksVector(), 1));
+                send(connId, packetHelper.createAttackPacket(getGame().getActionsVector(), false));
+                send(connId, packetHelper.createAttackPacket(getGame().getChargesVector(), true));
+                send(connId, packetHelper.createAttackPacket(getGame().getRamsVector(), true));
+                send(connId, packetHelper.createAttackPacket(getGame().getTeleMissileAttacksVector(), true));
             }
 
-            if (getGame().getPhase().hasTurns() && getGame().hasMoreTurns()) {
+            if (getGame().getPhase().usesTurns() && getGame().hasMoreTurns()) {
                 send(connId, createTurnVectorPacket());
                 send(connId, createTurnIndexPacket(connId));
             } else if (!getGame().getPhase().isLounge() && !getGame().getPhase().isStartingScenario()) {
@@ -723,13 +703,9 @@ public class GameManager implements IGameManager {
 
     @Override
     public void handlePacket(int connId, Packet packet) {
+        super.handlePacket(connId, packet);
         final Player player = game.getPlayer(connId);
         switch (packet.getCommand()) {
-            case PLAYER_READY:
-                receivePlayerDone(packet, connId);
-                send(createPlayerDonePacket(connId));
-                checkReady();
-                break;
             case PRINCESS_SETTINGS:
                 if (player != null) {
                     if (game.getBotSettings() == null) {
@@ -871,7 +847,7 @@ public class GameManager implements IGameManager {
             case SENDING_GAME_SETTINGS:
                 if (receiveGameOptions(packet, connId)) {
                     resetPlayersDone();
-                    send(createGameSettingsPacket());
+                    send(packetHelper.createGameSettingsPacket());
                     receiveGameOptionsAux(packet, connId);
                 }
                 break;
@@ -911,7 +887,7 @@ public class GameManager implements IGameManager {
                     sendServerChat(player + " changed planetary conditions");
                     game.setPlanetaryConditions(conditions);
                     resetPlayersDone();
-                    send(createPlanetaryConditionsPacket());
+                    send(packetHelper.createPlanetaryConditionsPacket());
                 }
                 break;
             case UNLOAD_STRANDED:
@@ -1085,7 +1061,7 @@ public class GameManager implements IGameManager {
             if (phase.isDeployment()) {
                 PlanetaryConditions conditions = game.getPlanetaryConditions();
                 boolean startSLOn = PreferenceManager.getClientPreferences().getStartSearchlightsOn()
-                        && conditions.getLight().isDarkerThan(Light.DAY);
+                        && conditions.getLight().isDuskOrFullMoonOrMoonlessOrPitchBack();
                 entity.setSearchlightState(startSLOn);
                 entity.setIlluminated(startSLOn);
             }
@@ -1363,11 +1339,8 @@ public class GameManager implements IGameManager {
         }
     }
 
-    /**
-     * Called when a player declares that he is "done." Checks to see if all
-     * players are done, and if so, moves on to the next phase.
-     */
-    private void checkReady() {
+    @Override
+    protected void checkReady() {
         // check if all active players are done
         for (Player player : game.getPlayersList()) {
             if (!player.isGhost() && !player.isObserver() && !player.isDone()) {
@@ -1387,9 +1360,7 @@ public class GameManager implements IGameManager {
             return; // don't end the phase yet, players need to see new report
         }
 
-        // need at least one entity in the game for the lounge phase to end
-        if (!getGame().getPhase().hasTurns()
-                && (!getGame().getPhase().isLounge() || (getGame().getNoOfEntities() > 0))) {
+        if (!getGame().getPhase().usesTurns() && !isEmptyLobby()) {
             endCurrentPhase();
         }
     }
@@ -1595,21 +1566,20 @@ public class GameManager implements IGameManager {
      *
      * @param phase the <code>int</code> id of the phase to change to
      */
-    private void changePhase(GamePhase phase) {
+    @Override
+    protected void changePhase(GamePhase phase) {
         game.setLastPhase(game.getPhase());
         game.setPhase(phase);
 
-        // prepare for the phase
         prepareForPhase(phase);
 
-        if (phase.isPlayable(getGame())) {
-            // tell the players about the new phase
-            send(new Packet(PacketCommand.PHASE_CHANGE, phase));
-
-            // post phase change stuff
-            executePhase(phase);
-        } else {
+        if (game.shouldSkipCurrentPhase()) {
             endCurrentPhase();
+        } else {
+            // tell the players about the new phase
+            send(packetHelper.createPhaseChangePacket());
+
+            executePhase(phase);
         }
     }
 
@@ -1879,7 +1849,7 @@ public class GameManager implements IGameManager {
             case INITIATIVE:
                 // remove the last traces of last round
                 game.handleInitiativeCompensation();
-                game.resetActions();
+                game.clearActions();
                 game.resetTagInfo();
                 sendTagInfoReset();
                 clearReports();
@@ -2028,7 +1998,7 @@ public class GameManager implements IGameManager {
                 resolveEmergencyCoolantSystem();
                 checkForSuffocation();
                 game.getPlanetaryConditions().determineWind();
-                send(createPlanetaryConditionsPacket());
+                send(packetHelper.createPlanetaryConditionsPacket());
 
                 applyBuildingDamage();
                 addReport(game.ageFlares());
@@ -2163,9 +2133,9 @@ public class GameManager implements IGameManager {
                 game.setupTeams();
                 applyBoardSettings();
                 game.getPlanetaryConditions().determineWind();
-                send(createPlanetaryConditionsPacket());
+                send(packetHelper.createPlanetaryConditionsPacket());
                 // transmit the board to everybody
-                send(createBoardPacket());
+                send(packetHelper.createBoardsPacket());
                 game.setupRoundDeployment();
                 game.setVictoryContext(new HashMap<>());
                 game.createVictoryConditions();
@@ -2198,6 +2168,7 @@ public class GameManager implements IGameManager {
      * Calculates the initial count and BV for all players, and thus should only be called at the
      * start of a game
      */
+    @Override
     public void calculatePlayerInitialCounts() {
         for (final Enumeration<Player> players = game.getPlayers(); players.hasMoreElements(); ) {
             final Player player = players.nextElement();
@@ -2307,7 +2278,8 @@ public class GameManager implements IGameManager {
     /**
      * Ends this phase and moves on to the next.
      */
-    private void endCurrentPhase() {
+    @Override
+    protected void endCurrentPhase() {
         switch (game.getPhase()) {
             case LOUNGE:
                 game.addReports(vPhaseReport);
@@ -2340,7 +2312,6 @@ public class GameManager implements IGameManager {
                 break;
             case DEPLOYMENT:
                 game.clearDeploymentThisRound();
-                game.checkForCompleteDeployment();
                 Enumeration<Player> pls = game.getPlayers();
                 while (pls.hasMoreElements()) {
                     Player p = pls.nextElement();
@@ -2611,7 +2582,7 @@ public class GameManager implements IGameManager {
      */
     private void incrementAndSendGameRound() {
         game.incrementRoundCount();
-        send(new Packet(PacketCommand.ROUND_UPDATE, getGame().getRoundCount()));
+        send(packetHelper.createCurrentRoundNumberPacket());
     }
 
     /**
@@ -9277,12 +9248,12 @@ public class GameManager implements IGameManager {
 
         // if we generated a charge attack, report it now
         if (charge != null) {
-            send(createAttackPacket(charge, 1));
+            send(packetHelper.createChargeAttackPacket(charge));
         }
 
         // if we generated a ram attack, report it now
         if (ram != null) {
-            send(createAttackPacket(ram, 1));
+            send(packetHelper.createChargeAttackPacket(ram));
         }
         if ((entity instanceof Mech) && entity.hasEngine() && ((Mech) entity).isIndustrial()
                 && !entity.hasEnvironmentalSealing()
@@ -13548,7 +13519,7 @@ public class GameManager implements IGameManager {
         }
         entityUpdate(entity.getId());
 
-        Packet p = createAttackPacket(vector, 0);
+        Packet p = packetHelper.createAttackPacket(vector, false);
         if (getGame().getPhase().isSimultaneous(getGame())) {
             // Update attack only to player who declared it & observers
             for (Player player : game.getPlayersVector()) {
@@ -13587,11 +13558,11 @@ public class GameManager implements IGameManager {
      */
     public void assignAMS() {
         // Get all of the coords that would be protected by APDS
-        Hashtable<Coords, List<Mounted>> apdsCoords = getAPDSProtectedCoords();
+        Hashtable<Coords, List<WeaponMounted>> apdsCoords = getAPDSProtectedCoords();
         // Map target to a list of missile attacks directed at it
         Hashtable<Entity, Vector<WeaponHandler>> htAttacks = new Hashtable<>();
         // Keep track of each APDS, and which attacks it could affect
-        Hashtable<Mounted, Vector<WeaponHandler>> apdsTargets = new Hashtable<>();
+        Hashtable<WeaponMounted, Vector<WeaponHandler>> apdsTargets = new Hashtable<>();
 
         for (AttackHandler ah : game.getAttacksVector()) {
             WeaponHandler wh = (WeaponHandler) ah;
@@ -13658,7 +13629,7 @@ public class GameManager implements IGameManager {
             v.addElement(wh);
             // Keep track of what weapon attacks could be affected by APDS
             if (apdsCoords.containsKey(target.getPosition())) {
-                for (Mounted apds : apdsCoords.get(target.getPosition())) {
+                for (WeaponMounted apds : apdsCoords.get(target.getPosition())) {
                     // APDS only affects attacks against friendly units
                     if (target.isEnemyOf(apds.getEntity())) {
                         continue;
@@ -13682,7 +13653,7 @@ public class GameManager implements IGameManager {
 
         // Let each APDS assign itself to an attack
         Set<WeaponAttackAction> targetedAttacks = new HashSet<>();
-        for (Mounted apds : apdsTargets.keySet()) {
+        for (WeaponMounted apds : apdsTargets.keySet()) {
             List<WeaponHandler> potentialTargets = apdsTargets.get(apds);
             // Ensure we only target each attack once
             List<WeaponHandler> targetsToRemove = new ArrayList<>();
@@ -13715,7 +13686,7 @@ public class GameManager implements IGameManager {
      * @param vAttacks
      *            List of missile attacks directed at e
      */
-    private WeaponAttackAction manuallyAssignAPDSTarget(Mounted apds,
+    private WeaponAttackAction manuallyAssignAPDSTarget(WeaponMounted apds,
                                                         List<WeaponHandler> vAttacks) {
         Entity e = apds.getEntity();
         if (e == null) {
@@ -13802,7 +13773,7 @@ public class GameManager implements IGameManager {
         // Current AMS targets: each attack can only be targeted once
         HashSet<WeaponAttackAction> amsTargets = new HashSet<>();
         // Pick assignment for each active AMS
-        for (Mounted ams : e.getActiveAMS()) {
+        for (WeaponMounted ams : e.getActiveAMS()) {
             // Skip APDS
             if (ams.isAPDS()) {
                 continue;
@@ -13867,22 +13838,22 @@ public class GameManager implements IGameManager {
      *
      * @return
      */
-    private Hashtable<Coords, List<Mounted>> getAPDSProtectedCoords() {
+    private Hashtable<Coords, List<WeaponMounted>> getAPDSProtectedCoords() {
         // Get all of the coords that would be protected by APDS
-        Hashtable<Coords, List<Mounted>> apdsCoords = new Hashtable<>();
+        Hashtable<Coords, List<WeaponMounted>> apdsCoords = new Hashtable<>();
         for (Entity e : game.getEntitiesVector()) {
             // Ignore Entities without positions
             if (e.getPosition() == null) {
                 continue;
             }
             Coords origPos = e.getPosition();
-            for (Mounted ams : e.getActiveAMS()) {
+            for (WeaponMounted ams : e.getActiveAMS()) {
                 // Ignore non-APDS AMS
                 if (!ams.isAPDS()) {
                     continue;
                 }
                 // Add the current hex as a defended location
-                List<Mounted> apdsList = apdsCoords.computeIfAbsent(origPos, k -> new ArrayList<>());
+                List<WeaponMounted> apdsList = apdsCoords.computeIfAbsent(origPos, k -> new ArrayList<>());
                 apdsList.add(ams);
                 // Add each coords that is within arc/range as protected
                 int maxDist = 3;
@@ -14349,7 +14320,7 @@ public class GameManager implements IGameManager {
             }
         }
         // and clear the attacks Vector
-        game.resetActions();
+        game.clearActions();
     }
 
     /**
@@ -15057,7 +15028,7 @@ public class GameManager implements IGameManager {
         }
 
         // reset actions and re-add valid elements
-        game.resetActions();
+        game.clearActions();
         for (EntityAction entityAction : toKeep) {
             game.addAction(entityAction);
         }
@@ -15069,7 +15040,7 @@ public class GameManager implements IGameManager {
      * even if the pilot is unconscious, so that he can fail.
      */
     private void removeDeadAttacks() {
-        Vector<EntityAction> toKeep = new Vector<>(game.actionsSize());
+        Vector<EntityAction> toKeep = new Vector<>();
 
         for (Enumeration<EntityAction> i = game.getActions(); i.hasMoreElements(); ) {
             EntityAction action = i.nextElement();
@@ -15081,7 +15052,7 @@ public class GameManager implements IGameManager {
         }
 
         // reset actions and re-add valid elements
-        game.resetActions();
+        game.clearActions();
         for (EntityAction entityAction : toKeep) {
             game.addAction(entityAction);
         }
@@ -23249,7 +23220,7 @@ public class GameManager implements IGameManager {
 
                         // If there are split weapons in this location, mark it
                         // as hit, even if it took no criticals.
-                        for (Mounted m : te.getWeaponList()) {
+                        for (WeaponMounted m : te.getWeaponList()) {
                             if (m.isSplit()) {
                                 if ((m.getLocation() == hit.getLocation())
                                         || (m.getLocation() == nextHit
@@ -25330,7 +25301,7 @@ public class GameManager implements IGameManager {
                             cf.setWingsHit(true);
                         }
                     }
-                    for (Mounted weapon : cf.getWeaponList()) {
+                    for (WeaponMounted weapon : cf.getWeaponList()) {
                         if (weapon.getLocation() == loc) {
                             if (destroyAll) {
                                 weapon.setHit(true);
@@ -25340,7 +25311,7 @@ public class GameManager implements IGameManager {
                         }
                     }
                     // also destroy any ECM or BAP in the location hit
-                    for (Mounted misc : cf.getMisc()) {
+                    for (MiscMounted misc : cf.getMisc()) {
                         if ((misc.getType().hasFlag(MiscType.F_ECM)
                                 || misc.getType().hasFlag(MiscType.F_ANGEL_ECM)
                                 || misc.getType().hasFlag(MiscType.F_BAP))
@@ -25371,40 +25342,39 @@ public class GameManager implements IGameManager {
                 }
                 r = new Report(9150);
                 r.subject = aero.getId();
-                List<Mounted> weapons = new ArrayList<>();
+                List<Mounted<?>> hittable = new ArrayList<>();
                 // Ignore internal bomb bay-mounted weapons
-                for (Mounted weapon : aero.getWeaponList()) {
+                for (WeaponMounted weapon : aero.getWeaponList()) {
                     if ((weapon.getLocation() == loc) && !weapon.isDestroyed() && !weapon.isInternalBomb()
                             && weapon.getType().isHittable()) {
-                        weapons.add(weapon);
+                        hittable.add(weapon);
                     }
                 }
                 // add in hittable misc equipment; internal bay munitions are handled separately.
-                for (Mounted misc : aero.getMisc()) {
+                for (MiscMounted misc : aero.getMisc()) {
                     if (misc.getType().isHittable()
                             && (misc.getLocation() == loc)
                             && !misc.isDestroyed()
                             && !misc.isInternalBomb()) {
-                        weapons.add(misc);
+                        hittable.add(misc);
                     }
                 }
 
-                if (!weapons.isEmpty()) {
-                    Mounted weapon = weapons.get(Compute.randomInt(weapons.size()));
+                if (!hittable.isEmpty()) {
+                    Mounted<?> equipmentHit = hittable.get(Compute.randomInt(hittable.size()));
                     // possibly check for an ammo explosion
                     // don't allow ammo explosions on fighter squadrons
                     if (game.getOptions().booleanOption(OptionsConstants.ADVAERORULES_STRATOPS_AMMO_EXPLOSIONS)
                             && !(aero instanceof FighterSquadron)
-                            && (weapon.getType() instanceof WeaponType)) {
+                            && (equipmentHit.getType() instanceof WeaponType)) {
                         //Bay Weapons
-                        if (aero.usesWeaponBays()) {
+                        if ((equipmentHit instanceof WeaponMounted) && aero.usesWeaponBays()) {
                             //Finish reporting(9150) a hit on the bay
-                            r.add(weapon.getName());
+                            r.add(equipmentHit.getName());
                             reports.add(r);
                             //Pick a random weapon in the bay and get the stats
-                            int wId = weapon.getBayWeapons().get(Compute.randomInt(weapon.getBayWeapons().size()));
-                            Mounted bayW = aero.getEquipment(wId);
-                            Mounted bayWAmmo = bayW.getLinked();
+                            WeaponMounted bayW = Compute.randomListElement(((WeaponMounted) equipmentHit).getBayWeapons());
+                            AmmoMounted bayWAmmo = bayW.getLinkedAmmo();
                             if (bayWAmmo != null && bayWAmmo.getType().isExplosive(bayWAmmo)) {
                                 r = new Report(9156);
                                 r.subject = aero.getId();
@@ -25443,33 +25413,30 @@ public class GameManager implements IGameManager {
                                 }
                             }
                             // Hit the weapon then also hit all the other weapons in the bay
-                            weapon.setHit(true);
-                            for (int next : weapon.getBayWeapons()) {
-                                Mounted bayWeap = aero.getEquipment(next);
-                                if (null != bayWeap) {
-                                    bayWeap.setHit(true);
-                                    // Taharqa : We should also damage the critical slot, or MM and
-                                    // MHQ won't remember that this weapon is damaged on the MUL file
-                                    for (int i = 0; i < aero.getNumberOfCriticals(loc); i++) {
-                                        CriticalSlot slot1 = aero.getCritical(loc, i);
-                                        if ((slot1 == null) ||
-                                                (slot1.getType() == CriticalSlot.TYPE_SYSTEM)) {
-                                            continue;
-                                        }
-                                        Mounted mounted = slot1.getMount();
-                                        if (mounted.equals(bayWeap)) {
-                                            aero.hitAllCriticals(loc, i);
-                                            break;
-                                        }
+                            equipmentHit.setHit(true);
+                            for (WeaponMounted bayWeap : ((WeaponMounted) equipmentHit).getBayWeapons()) {
+                                bayWeap.setHit(true);
+                                // Taharqa : We should also damage the critical slot, or MM and
+                                // MHQ won't remember that this weapon is damaged on the MUL file
+                                for (int i = 0; i < aero.getNumberOfCriticals(loc); i++) {
+                                    CriticalSlot slot1 = aero.getCritical(loc, i);
+                                    if ((slot1 == null) ||
+                                            (slot1.getType() == CriticalSlot.TYPE_SYSTEM)) {
+                                        continue;
+                                    }
+                                    Mounted mounted = slot1.getMount();
+                                    if (mounted.equals(bayWeap)) {
+                                        aero.hitAllCriticals(loc, i);
+                                        break;
                                     }
                                 }
                             }
                             break;
                         }
                         // does it use Ammo?
-                        WeaponType wtype = (WeaponType) weapon.getType();
+                        WeaponType wtype = (WeaponType) equipmentHit.getType();
                         if (wtype.getAmmoType() != AmmoType.T_NA) {
-                            Mounted m = weapon.getLinked();
+                            Mounted m = equipmentHit.getLinked();
                             int ammoroll = Compute.d6(2);
                             if (ammoroll >= 10) {
                                 // A chance to reroll an explosion with edge
@@ -25504,24 +25471,24 @@ public class GameManager implements IGameManager {
                     // If the weapon is explosive, use edge to roll up a new one
                     if (aero.getCrew().hasEdgeRemaining()
                             && aero.getCrew().getOptions().booleanOption(OptionsConstants.EDGE_WHEN_AERO_EXPLOSION)
-                            && (weapon.getType().isExplosive(weapon) && !weapon.isHit()
-                            && !weapon.isDestroyed())) {
+                            && (equipmentHit.getType().isExplosive(equipmentHit) && !equipmentHit.isHit()
+                            && !equipmentHit.isDestroyed())) {
                         aero.getCrew().decreaseEdge();
                         // Try something new for an interrupting report. r is still 9150.
                         Report r1 = new Report(6530);
                         r1.subject = aero.getId();
                         r1.add(aero.getCrew().getOptions().intOption(OptionsConstants.EDGE));
                         reports.add(r1);
-                        weapon = weapons.get(Compute.randomInt(weapons.size()));
+                        equipmentHit = hittable.get(Compute.randomInt(hittable.size()));
                     }
-                    r.add(weapon.getName());
+                    r.add(equipmentHit.getName());
                     reports.add(r);
                     // explosive weapons e.g. gauss now explode
-                    if (weapon.getType().isExplosive(weapon) && !weapon.isHit()
-                            && !weapon.isDestroyed()) {
-                        reports.addAll(explodeEquipment(aero, loc, weapon));
+                    if (equipmentHit.getType().isExplosive(equipmentHit) && !equipmentHit.isHit()
+                            && !equipmentHit.isDestroyed()) {
+                        reports.addAll(explodeEquipment(aero, loc, equipmentHit));
                     }
-                    weapon.setHit(true);
+                    equipmentHit.setHit(true);
                     // Taharqa : We should also damage the critical slot, or MM and MHQ won't
                     // remember that this weapon is damaged on the MUL file
                     for (int i = 0; i < aero.getNumberOfCriticals(loc); i++) {
@@ -25529,16 +25496,15 @@ public class GameManager implements IGameManager {
                         if ((slot1 == null) || (slot1.getType() == CriticalSlot.TYPE_SYSTEM)) {
                             continue;
                         }
-                        Mounted mounted = slot1.getMount();
-                        if (mounted.equals(weapon)) {
+                        Mounted<?> mounted = slot1.getMount();
+                        if (mounted.equals(equipmentHit)) {
                             aero.hitAllCriticals(loc, i);
                             break;
                         }
                     }
                     // if this is a weapons bay then also hit all the other weapons
-                    for (int wId : weapon.getBayWeapons()) {
-                        Mounted bayWeap = aero.getEquipment(wId);
-                        if (null != bayWeap) {
+                    if (equipmentHit instanceof WeaponMounted) {
+                        for (WeaponMounted bayWeap : ((WeaponMounted) equipmentHit).getBayWeapons()) {
                             bayWeap.setHit(true);
                             // Taharqa : We should also damage the critical slot, or MM and MHQ
                             // won't remember that this weapon is damaged on the MUL file
@@ -25855,7 +25821,7 @@ public class GameManager implements IGameManager {
                         r.subject = aero.getId();
                         r.addDesc(aero);
                         reports.add(r);
-                        for (Mounted bomb: ((IBomber) aero).getBombs()) {
+                        for (BombMounted bomb: ((IBomber) aero).getBombs()) {
                             damageBomb(bomb);
                         }
                         aero.applyDamage();
@@ -25864,13 +25830,13 @@ public class GameManager implements IGameManager {
                         // This will require firing an event to the End Phase to display a dialog;
                         // for now just randomly dump bombs just like bots'.
                         // TODO: fire event here to display dialog in end phase.
-                        for (Mounted bomb:randomlySubSelectList(((IBomber) aero).getBombs(), bombsDestroyed)) {
+                        for (BombMounted bomb : randomlySubSelectList(((IBomber) aero).getBombs(), bombsDestroyed)) {
                             damageBomb(bomb);
                         }
                         aero.applyDamage();
                     } else {
                         // This should always use the random method.
-                        for (Mounted bomb:randomlySubSelectList(((IBomber) aero).getBombs(), bombsDestroyed)) {
+                        for (BombMounted bomb:randomlySubSelectList(((IBomber) aero).getBombs(), bombsDestroyed)) {
                             damageBomb(bomb);
                         }
                         aero.applyDamage();
@@ -25886,7 +25852,7 @@ public class GameManager implements IGameManager {
         }
     }
 
-    private void damageBomb(Mounted bomb) {
+    private void damageBomb(BombMounted bomb) {
         bomb.setShotsLeft(0);
         bomb.setHit(true);
         if (bomb.getLinked() != null && (bomb.getLinked().getUsableShotsLeft() > 0)) {
@@ -25895,8 +25861,8 @@ public class GameManager implements IGameManager {
     }
 
     // Randomly select subset of Mounted items.
-    private ArrayList<Mounted> randomlySubSelectList(List<Mounted> list, int size) {
-        ArrayList<Mounted> subset = new ArrayList<>();
+    private <T extends Mounted<?>> List<T> randomlySubSelectList(List<T> list, int size) {
+        List<T> subset = new ArrayList<>();
         Random random_method = new Random();
         for (int i = 0; i < size; i++) {
             subset.add(list.get(random_method.nextInt(list.size())));
@@ -28756,7 +28722,7 @@ public class GameManager implements IGameManager {
             }
             // also do DWP dumping
             if (entity instanceof BattleArmor) {
-                for (Mounted m : entity.getWeaponList()) {
+                for (WeaponMounted m : entity.getWeaponList()) {
                     if (m.isDWPMounted() && m.isPendingDump()) {
                         m.setMissing(true);
                         r = new Report(5116);
@@ -29026,7 +28992,7 @@ public class GameManager implements IGameManager {
      *                  in base path).
      * @param sizes     Where to store the discovered board sizes
      */
-    private void getBoardSizesInDir(final File searchDir, TreeSet<BoardDimensions> sizes) {
+    private static void getBoardSizesInDir(final File searchDir, TreeSet<BoardDimensions> sizes) {
         if (searchDir == null) {
             throw new IllegalArgumentException("must provide searchDir");
         }
@@ -29065,7 +29031,7 @@ public class GameManager implements IGameManager {
      *
      * @return A Set containing all the available board sizes.
      */
-    private Set<BoardDimensions> getBoardSizes() {
+    public static Set<BoardDimensions> getBoardSizes() {
         TreeSet<BoardDimensions> board_sizes = new TreeSet<>();
 
         File boards_dir = Configuration.boardsDir();
@@ -29616,25 +29582,25 @@ public class GameManager implements IGameManager {
      *         that round. The reports returned this way are properly filtered for
      *         double blind.
      */
-    private Vector<Vector<Report>> filterPastReports(
-            Vector<Vector<Report>> pastReports, Player p) {
+    private List<List<Report>> filterPastReports(
+            List<List<Report>> pastReports, Player p) {
         // Only actually bother with the filtering if double-blind is in effect.
         if (!doBlind()) {
             return pastReports;
         }
         // Perform filtering
-        Vector<Vector<Report>> filteredReports = new Vector<>();
-        for (Vector<Report> roundReports : pastReports) {
-            Vector<Report> filteredRoundReports = new Vector<>();
+        List<List<Report>> filteredReports = new ArrayList<>();
+        for (List<Report> roundReports : pastReports) {
+            List<Report> filteredRoundReports = new ArrayList<>();
             for (Report r : roundReports) {
                 if (r.isObscuredRecipient(p.getName())) {
                     r = filterReport(r, null, true);
                 }
                 if (r != null) {
-                    filteredRoundReports.addElement(r);
+                    filteredRoundReports.add(r);
                 }
             }
-            filteredReports.addElement(filteredRoundReports);
+            filteredReports.add(filteredRoundReports);
         }
         return filteredReports;
     }
@@ -30301,25 +30267,15 @@ public class GameManager implements IGameManager {
         }
 
         // Make sure that the entity has the given equipment.
-        Mounted mWeap = e.getEquipment(weaponId);
-        Mounted mAmmo = e.getEquipment(ammoId);
-        Mounted oldAmmo = (mWeap == null) ? null : mWeap.getLinked();
+        WeaponMounted mWeap = (WeaponMounted) e.getEquipment(weaponId);
+        AmmoMounted mAmmo = (AmmoMounted) e.getEquipment(ammoId);
+        AmmoMounted oldAmmo = (mWeap == null) ? null : mWeap.getLinkedAmmo();
         if (null == mAmmo) {
             LogManager.getLogger().error("Entity " + e.getDisplayName() + " does not have ammo #" + ammoId);
             return;
         }
-        if (!(mAmmo.getType() instanceof AmmoType)) {
-            LogManager.getLogger().error("Item #" + ammoId + " of entity " + e.getDisplayName()
-                    + " is a " + mAmmo.getName() + " and not ammo.");
-            return;
-        }
         if (null == mWeap) {
             LogManager.getLogger().error("Entity " + e.getDisplayName() + " does not have weapon #" + weaponId);
-            return;
-        }
-        if (!(mWeap.getType() instanceof WeaponType)) {
-            LogManager.getLogger().error("Item #" + weaponId + " of entity " + e.getDisplayName()
-                    + " is a " + mWeap.getName() + " and not a weapon.");
             return;
         }
         if (((WeaponType) mWeap.getType()).getAmmoType() == AmmoType.T_NA) {
@@ -30345,9 +30301,6 @@ public class GameManager implements IGameManager {
             r.add(mAmmo.getShortName());
             r.add(ReportMessages.getString(String.valueOf(reason)));
             addReport(r);
-            if (LogManager.getLogger().isDebugEnabled()) {
-
-            }
         }
     }
 
@@ -30575,13 +30528,6 @@ public class GameManager implements IGameManager {
     }
 
     /**
-     * Creates a packet containing the player ready status
-     */
-    private Packet createPlayerDonePacket(int playerId) {
-        return new Packet(PacketCommand.PLAYER_READY, playerId, game.getPlayer(playerId).isDone());
-    }
-
-    /**
      * Creates a packet containing the current turn vector
      */
     private Packet createTurnVectorPacket() {
@@ -30605,27 +30551,6 @@ public class GameManager implements IGameManager {
 
     private Packet createMapSizesPacket() {
         return new Packet(PacketCommand.SENDING_AVAILABLE_MAP_SIZES, getBoardSizes());
-    }
-
-    /**
-     * Creates a packet containing the planetary conditions
-     */
-    private Packet createPlanetaryConditionsPacket() {
-        return new Packet(PacketCommand.SENDING_PLANETARY_CONDITIONS, getGame().getPlanetaryConditions());
-    }
-
-    /**
-     * Creates a packet containing the game settings
-     */
-    private Packet createGameSettingsPacket() {
-        return new Packet(PacketCommand.SENDING_GAME_SETTINGS, getGame().getOptions());
-    }
-
-    /**
-     * Creates a packet containing the game board
-     */
-    private Packet createBoardPacket() {
-        return new Packet(PacketCommand.SENDING_BOARD, getGame().getBoard());
     }
 
     /**
@@ -30795,15 +30720,6 @@ public class GameManager implements IGameManager {
     }
 
     /**
-     * Sends out the player ready stats for all players to all connections
-     */
-    private void transmitAllPlayerDones() {
-        for (Player player : getGame().getPlayersList()) {
-            send(createPlayerDonePacket(player.getId()));
-        }
-    }
-
-    /**
      * Creates a packet containing a hex, and the coordinates it goes at.
      */
     private Packet createHexChangePacket(Coords coords, Hex hex) {
@@ -30854,22 +30770,6 @@ public class GameManager implements IGameManager {
     public void sendVisibilityIndicator(Entity e) {
         send(new Packet(PacketCommand.ENTITY_VISIBILITY_INDICATOR, e.getId(), e.isEverSeenByEnemy(),
                 e.isVisibleToEnemy(), e.isDetectedByEnemy(), e.getWhoCanSee(), e.getWhoCanDetect()));
-    }
-
-    /**
-     * Creates a packet for an attack
-     */
-    private Packet createAttackPacket(List<?> vector, int charges) {
-        return new Packet(PacketCommand.ENTITY_ATTACK, vector, charges);
-    }
-
-    /**
-     * Creates a packet for an attack
-     */
-    private Packet createAttackPacket(EntityAction ea, int charge) {
-        Vector<EntityAction> vector = new Vector<>(1);
-        vector.addElement(ea);
-        return new Packet(PacketCommand.ENTITY_ATTACK, vector, charge);
     }
 
     private Packet createSpecialHexDisplayPacket(int toPlayer) {
@@ -32459,7 +32359,7 @@ public class GameManager implements IGameManager {
         } // Handle the next pending unload action
 
         // Clear the list of pending units and move to the next turn.
-        game.resetActions();
+        game.clearActions();
         changeToNextTurn(connId);
     }
 
@@ -34245,8 +34145,8 @@ public class GameManager implements IGameManager {
      * vPhaseReport queue
      */
     @Override
-    public void addReport(Report report) {
-        vPhaseReport.addElement(report);
+    public void addReport(ReportEntry report) {
+        vPhaseReport.addElement((Report) report);
     }
 
     /**
@@ -35064,27 +34964,27 @@ public class GameManager implements IGameManager {
      * @param mineId an <code>int</code> pointing to the mine
      */
     private void layMine(Entity entity, int mineId, Coords coords) {
-        Mounted mine = entity.getEquipment(mineId);
+        MiscMounted mine = (MiscMounted) entity.getEquipment(mineId);
         Report r;
         if (!mine.isMissing()) {
             int reportId = 0;
             switch (mine.getMineType()) {
-                case Mounted.MINE_CONVENTIONAL:
+                case MiscMounted.MINE_CONVENTIONAL:
                     deliverThunderMinefield(coords, entity.getOwnerId(), 10,
                             entity.getId());
                     reportId = 3500;
                     break;
-                case Mounted.MINE_VIBRABOMB:
+                case MiscMounted.MINE_VIBRABOMB:
                     deliverThunderVibraMinefield(coords, entity.getOwnerId(), 10,
                             mine.getVibraSetting(), entity.getId());
                     reportId = 3505;
                     break;
-                case Mounted.MINE_ACTIVE:
+                case MiscMounted.MINE_ACTIVE:
                     deliverThunderActiveMinefield(coords, entity.getOwnerId(), 10,
                             entity.getId());
                     reportId = 3510;
                     break;
-                case Mounted.MINE_INFERNO:
+                case MiscMounted.MINE_INFERNO:
                     deliverThunderInfernoMinefield(coords, entity.getOwnerId(), 10,
                             entity.getId());
                     reportId = 3515;

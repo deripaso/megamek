@@ -47,12 +47,14 @@ import static megamek.client.ui.swing.util.UIUtil.uiLightViolet;
  * Control buttons are grouped and the groups can be cycled through.
  */
 public abstract class StatusBarPhaseDisplay extends AbstractPhaseDisplay
-        implements ActionListener, MouseListener, KeyListener, IPreferenceChangeListener {
+        implements ActionListener, MouseListener, KeyListener, IPreferenceChangeListener,
+        KeyBindReceiver {
 
     protected static final Dimension MIN_BUTTON_SIZE = new Dimension(32, 32);
     protected static final GUIPreferences GUIP = GUIPreferences.getInstance();
     private static final int BUTTON_ROWS = 2;
     private static final String SBPD_KEY_CLEARBUTTON = "clearButton";
+    protected final ClientGUI clientgui;
 
     /**
      * timer that ends turn if time limit set in options is over
@@ -100,6 +102,7 @@ public abstract class StatusBarPhaseDisplay extends AbstractPhaseDisplay
 
     protected StatusBarPhaseDisplay(ClientGUI cg) {
         super(cg);
+        this.clientgui = cg;
         getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), SBPD_KEY_CLEARBUTTON);
         getActionMap().put(SBPD_KEY_CLEARBUTTON, new AbstractAction() {
             @Override
@@ -273,8 +276,6 @@ public abstract class StatusBarPhaseDisplay extends AbstractPhaseDisplay
             buttonsPerRow = GUIP.getButtonsPerRow();
             buttonsPerGroup = 2 * buttonsPerRow;
             setupButtonPanel();
-        } else if (e.getName().equals(GUIPreferences.GUI_SCALE)) {
-            adaptToGUIScale();
         } else if (e.getName().equals(KeyBindParser.KEYBINDS_CHANGED)) {
             setButtonsTooltips();
         }
@@ -282,33 +283,15 @@ public abstract class StatusBarPhaseDisplay extends AbstractPhaseDisplay
         adaptToGUIScale();
     }
 
-    /**
-     * Register all of the <code>CommandAction</code>s for this panel display.
-     */
+    @Override
+    public boolean shouldReceiveKeyCommands() {
+        return clientgui.getClient().isMyTurn()
+                && !clientgui.getBoardView().getChatterBoxActive()
+                && !isIgnoringEvents() && isVisible();
+    }
+
     protected void regKeyCommands() {
-        MegaMekController controller = clientgui.controller;
-        final StatusBarPhaseDisplay display = this;
-        // Register the action for EXTEND_TURN_TIMER
-        controller.registerCommandAction(KeyCommandBind.EXTEND_TURN_TIMER.cmd,
-                new CommandAction() {
-
-                    @Override
-                    public boolean shouldPerformAction() {
-                        if (!clientgui.getClient().isMyTurn()
-                                || clientgui.getBoardView().getChatterBoxActive()
-                                || display.isIgnoringEvents()
-                                || !display.isVisible()) {
-                            return false;
-                        } else {
-                            return true;
-                        }
-                    }
-
-                    @Override
-                    public void performAction() {
-                        extendTimer();
-                    }
-                });
+        clientgui.controller.registerCommandAction(KeyCommandBind.EXTEND_TURN_TIMER, this, this::extendTimer);
     }
 
     @Override
@@ -417,27 +400,4 @@ public abstract class StatusBarPhaseDisplay extends AbstractPhaseDisplay
             }
         }
     }
-
-    public void setWeaponFieldOfFire(Entity unit, int[][] ranges, int arc, int loc) {
-        setWeaponFieldOfFire(unit, ranges, arc, loc, unit.getFacing());
-    }
-
-    public void setWeaponFieldOfFire(Entity unit, int[][] ranges, int arc, int loc, int facing) {
-        clientgui.getBoardView().fieldOfFireUnit = unit;
-        clientgui.getBoardView().fieldOfFireRanges = ranges;
-        clientgui.getBoardView().fieldOfFireWpArc = arc;
-        clientgui.getBoardView().fieldOfFireWpLoc = loc;
-
-        clientgui.getBoardView().setWeaponFieldOfFire(facing, unit.getPosition());
-    }
-
-    public void setWeaponFieldOfFire(Entity unit, int[][] ranges, int arc, int loc, MovePath cmd) {
-        clientgui.getBoardView().fieldOfFireUnit = unit;
-        clientgui.getBoardView().fieldOfFireRanges = ranges;
-        clientgui.getBoardView().fieldOfFireWpArc = arc;
-        clientgui.getBoardView().fieldOfFireWpLoc = loc;
-
-        clientgui.getBoardView().setWeaponFieldOfFire(unit, cmd);
-    }
-
 }

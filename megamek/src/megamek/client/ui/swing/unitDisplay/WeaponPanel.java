@@ -13,6 +13,8 @@ import megamek.client.ui.swing.widget.*;
 import megamek.common.*;
 import megamek.common.annotations.Nullable;
 import megamek.common.enums.WeaponSortOrder;
+import megamek.common.equipment.AmmoMounted;
+import megamek.common.equipment.WeaponMounted;
 import megamek.common.options.OptionsConstants;
 import megamek.common.preference.IPreferenceChangeListener;
 import megamek.common.preference.PreferenceChangeEvent;
@@ -79,7 +81,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
             int currentIndex = srcList.locationToIndex(e.getPoint());
             if (currentIndex != dragSourceIndex) {
                 int dragTargetIndex = srcList.getSelectedIndex();
-                Mounted weap1 = srcModel.getWeaponAt(dragSourceIndex);
+                WeaponMounted weap1 = srcModel.getWeaponAt(dragSourceIndex);
                 srcModel.swapIdx(dragSourceIndex, dragTargetIndex);
                 dragSourceIndex = currentIndex;
                 Entity ent = weap1.getEntity();
@@ -93,7 +95,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
 
                 // Update custom order
                 for (int i = 0; i < srcModel.getSize(); i++) {
-                    Mounted m = srcModel.getWeaponAt(i);
+                    WeaponMounted m = srcModel.getWeaponAt(i);
                     ent.setCustomWeaponOrder(m, i);
                 }
             }
@@ -114,7 +116,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
         /**
          * A collection of Mounted instantiations.
          */
-        private ArrayList<Mounted> weapons;
+        private List<WeaponMounted> weapons;
 
         /**
          * The Entity that owns the collection of Mounteds.
@@ -131,7 +133,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
          *
          * @param w
          */
-        public void addWeapon(Mounted w) {
+        public void addWeapon(WeaponMounted w) {
             weapons.add(w);
             fireIntervalAdded(this, weapons.size() - 1, weapons.size() - 1);
         }
@@ -144,7 +146,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
          * @return
          */
         public int getIndex(int weaponId) {
-            Mounted mount = en.getEquipment(weaponId);
+            Mounted<?> mount = en.getEquipment(weaponId);
             for (int i = 0; i < weapons.size(); i++) {
                 if (weapons.get(i).equals(mount)) {
                     return i;
@@ -171,14 +173,14 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
                     || (idx1 < 0) || (idx2 < 0)) {
                 return;
             }
-            Mounted m1 = weapons.get(idx1);
+            WeaponMounted m1 = weapons.get(idx1);
             weapons.set(idx1, weapons.get(idx2));
             weapons.set(idx2, m1);
             fireContentsChanged(this, idx1, idx1);
             fireContentsChanged(this, idx2, idx2);
         }
 
-        public Mounted getWeaponAt(int index) {
+        public WeaponMounted getWeaponAt(int index) {
             return weapons.get(index);
         }
 
@@ -190,7 +192,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
          */
         @Override
         public String getElementAt(int index) {
-            final Mounted mounted = weapons.get(index);
+            final WeaponMounted mounted = weapons.get(index);
             final WeaponType wtype = (WeaponType) mounted.getType();
             Game game = null;
             if (unitDisplay.getClientGUI() != null) {
@@ -280,7 +282,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
          *
          * @param comparator
          */
-        public void sort(Comparator<Mounted> comparator) {
+        public void sort(Comparator<WeaponMounted> comparator) {
             weapons.sort(comparator);
             fireContentsChanged(this, 0, weapons.size() - 1);
         }
@@ -354,7 +356,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
 
     // I need to keep a pointer to the weapon list of the
     // currently selected mech.
-    private ArrayList<Mounted> vAmmo;
+    private ArrayList<AmmoMounted> vAmmo;
     private Entity entity;
 
     private int minTopMargin = 8;
@@ -930,7 +932,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
         wTargetExtraInfo.setText(UnitToolTip.wrapWithHTML(txt));
     }
 
-    private void updateTargetInfo() {;
+    private void updateTargetInfo() {
         String txt = "";
 
         if (target == null) {
@@ -1129,13 +1131,13 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
 
         boolean hasFiredWeapons = false;
         for (int i = 0; i < entity.getWeaponList().size(); i++) {
-            Mounted mounted = entity.getWeaponList().get(i);
+            WeaponMounted mounted = entity.getWeaponList().get(i);
 
             // Don't add bomb weapons for LAMs in mech mode except RL and TAG.
             if ((entity instanceof LandAirMech)
                     && (entity.getConversionMode() == LandAirMech.CONV_MODE_MECH)
                     && mounted.getType().hasFlag(WeaponType.F_BOMB_WEAPON)
-                    && ((WeaponType) mounted.getType()).getAmmoType() != AmmoType.T_RL_BOMB
+                    && mounted.getType().getAmmoType() != AmmoType.T_RL_BOMB
                     && !mounted.getType().hasFlag(WeaponType.F_TAG)) {
                 continue;
             }
@@ -1149,8 +1151,8 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
                 if (entity.usesWeaponBays()) {
                     // if using bay heat option then don't add total arc
                     if (game.getOptions().booleanOption(OptionsConstants.ADVAERORULES_HEAT_BY_BAY)) {
-                        for (int wId : mounted.getBayWeapons()) {
-                            currentHeatBuildup += entity.getEquipment(wId).getCurrentHeat();
+                        for (WeaponMounted weapon : mounted.getBayWeapons()) {
+                            currentHeatBuildup += weapon.getCurrentHeat();
                         }
                     } else {
                         // check whether arc has fired
@@ -1291,7 +1293,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
     /**
      * @return the Mounted for the selected weapon in the weapon list.
      */
-    public Mounted getSelectedWeapon() {
+    public WeaponMounted getSelectedWeapon() {
         int selected = weaponList.getSelectedIndex();
         if (selected == -1) {
             return null;
@@ -1322,7 +1324,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
         }
         WeaponListModel weapList = (WeaponListModel) weaponList.getModel();
         for (int i = 0; i < weaponList.getModel().getSize(); i++) {
-            Mounted selectedWeap = weapList.getWeaponAt(i);
+            WeaponMounted selectedWeap = weapList.getWeaponAt(i);
             if (entity.isWeaponValidForPhase(selectedWeap)) {
                 weaponList.setSelectedIndex(i);
                 weaponList.ensureIndexIsVisible(i);
@@ -1340,7 +1342,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
         if (selected == -1) {
             selected = weaponList.getModel().getSize() - 1;
         }
-        Mounted selectedWeap;
+        WeaponMounted selectedWeap;
         int initialSelection = selected;
 
         boolean hasLooped = false;
@@ -1370,7 +1372,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
         if (selected == -1) {
             selected = 0;
         }
-        Mounted selectedWeap;
+        WeaponMounted selectedWeap;
         int initialSelection = selected;
         boolean hasLooped = false;
         do {
@@ -1478,9 +1480,9 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
             return;
         }
 
-        Mounted mounted = ((WeaponListModel) weaponList.getModel())
+        WeaponMounted mounted = ((WeaponListModel) weaponList.getModel())
                 .getWeaponAt(weaponList.getSelectedIndex());
-        WeaponType wtype = (WeaponType) mounted.getType();
+        WeaponType wtype = mounted.getType();
         // The rules are a bit sparse on airborne (dropping) ground units, but it seems they should
         // still attack like ground units.
         boolean aerospaceAttack = entity.isAero() && (entity.isAirborne() || entity.usesWeaponBays());
@@ -1876,8 +1878,8 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
         }
 
         // Update the range display to account for the weapon's loaded ammo.
-        if (mounted.getLinked() != null) {
-            updateRangeDisplayForAmmo(mounted.getLinked());
+        if ((mounted.getLinked() != null) && (mounted.getLinked() instanceof AmmoMounted)) {
+            updateRangeDisplayForAmmo((AmmoMounted) mounted.getLinked());
         }
 
         if (aerospaceAttack) {
@@ -1895,7 +1897,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
             } else {
                 // otherwise I need to replace range display with standard
                 // ranges and attack values
-                updateAttackValues(mounted, mounted.getLinked());
+                updateAttackValues(mounted, (AmmoMounted) mounted.getLinked());
             }
 
         }
@@ -1907,12 +1909,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
             m_chBayWeapon.setEnabled(false);
         } else {
             m_chBayWeapon.setEnabled(true);
-            for (int wId : mounted.getBayWeapons()) {
-                Mounted curWeapon = entity.getEquipment(wId);
-                if (null == curWeapon) {
-                    continue;
-                }
-
+            for (WeaponMounted curWeapon : mounted.getBayWeapons()) {
                 m_chBayWeapon.addItem(formatBayWeapon(curWeapon));
             }
 
@@ -1925,15 +1922,14 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
 
         // update ammo selector
         ((DefaultComboBoxModel<String>) m_chAmmo.getModel()).removeAllElements();
-        Mounted oldmount = mounted;
+        WeaponMounted oldmount = mounted;
         if (wtype instanceof BayWeapon) {
             int n = m_chBayWeapon.getSelectedIndex();
             if (n == -1) {
                 n = 0;
             }
-            mounted = entity.getEquipment(mounted.getBayWeapons()
-                                                 .elementAt(n));
-            wtype = (WeaponType) mounted.getType();
+            mounted = mounted.getBayWeapon(n);
+            wtype = mounted.getType();
         }
 
         if (wtype.getAmmoType() == AmmoType.T_NA) {
@@ -1942,7 +1938,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
                 || (entity.isSupportVehicle() && (wtype.getAmmoType() == AmmoType.T_INFANTRY))) {
             int count = 0;
             vAmmo = new ArrayList<>();
-            for (Mounted current = mounted.getLinked(); current != null; current = current.getLinked()) {
+            for (AmmoMounted current = mounted.getLinkedAmmo(); current != null; current = (AmmoMounted) current.getLinked()) {
                 if (current.getUsableShotsLeft() > 0) {
                     vAmmo.add(current);
                     m_chAmmo.addItem(formatAmmo(current));
@@ -1959,7 +1955,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
         // this is the situation where there's some kind of ammo but it's not changeable
         } else if (wtype.hasFlag(WeaponType.F_ONESHOT)) {
             m_chAmmo.setEnabled(false);
-            Mounted mountedAmmo = mounted.getLinked();
+            Mounted<?> mountedAmmo = mounted.getLinked();
             if (mountedAmmo != null) {
                 m_chAmmo.addItem(formatAmmo(mountedAmmo));
             }
@@ -1969,7 +1965,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
             int nCur = -1;
             int i = 0;
             //Ammo sharing between adjacent trailers
-            List<Mounted> fullAmmoList = new ArrayList<>(entity.getAmmo());
+            List<AmmoMounted> fullAmmoList = new ArrayList<>(entity.getAmmo());
             if (entity.getTowedBy() != Entity.NONE) {
                 Entity ahead = entity.getGame().getEntity(entity.getTowedBy());
                 fullAmmoList.addAll(ahead.getAmmo());
@@ -1978,8 +1974,8 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
                 Entity behind = entity.getGame().getEntity(entity.getTowing());
                 fullAmmoList.addAll(behind.getAmmo());
             }
-            for (Mounted mountedAmmo : fullAmmoList) {
-                AmmoType atype = (AmmoType) mountedAmmo.getType();
+            for (AmmoMounted mountedAmmo : fullAmmoList) {
+                AmmoType atype = mountedAmmo.getType();
                 // for all aero units other than fighters,
                 // ammo must be located in the same place to be usable
                 boolean same = true;
@@ -2017,210 +2013,13 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
         }
 
         // send event to other parts of the UI which care
-        if (oldmount.isInWaypointLaunchMode()) {
-            setFieldOfFire(oldmount);
-        } else {
-            setFieldOfFire(mounted);
-        }
+        unitDisplay.getClientGUI().showSensorRanges(entity);
         unitDisplay.processMechDisplayEvent(new MechDisplayEvent(this, entity, mounted));
         onResize();
         addListeners();
     }
 
-    // this gathers all the range data
-    // it is a boiled down version of displaySelected,
-    // updateAttackValues, updateRangeDisplayForAmmo
-    private void setFieldOfFire(Mounted mounted) {
-        // No field of fire without ClientGUI
-        if (unitDisplay.getClientGUI() == null) {
-            return;
-        }
-
-        ClientGUI gui = unitDisplay.getClientGUI();
-
-        WeaponType wtype = (WeaponType) mounted.getType();
-        int[][] ranges = new int[2][5];
-        ranges[0] = wtype.getRanges(mounted);
-
-        AmmoType atype = null;
-        if ((mounted.getLinked() != null) && (mounted.getLinked().getType() instanceof AmmoType)) {
-            atype = (AmmoType) mounted.getLinked().getType();
-        }
-
-        // gather underwater ranges
-        ranges[1] = wtype.getWRanges();
-        if (atype != null) {
-            if ((wtype.getAmmoType() == AmmoType.T_SRM)
-                    || (wtype.getAmmoType() == AmmoType.T_SRM_IMP)
-                    || (wtype.getAmmoType() == AmmoType.T_MRM)
-                    || (wtype.getAmmoType() == AmmoType.T_LRM)
-                    || (wtype.getAmmoType() == AmmoType.T_LRM_IMP)
-                    || (wtype.getAmmoType() == AmmoType.T_MML)) {
-                if (atype.getMunitionType().contains(AmmoType.Munitions.M_TORPEDO)) {
-                    ranges[1] = wtype.getRanges(mounted);
-                } else if (atype.getMunitionType().contains(AmmoType.Munitions.M_MULTI_PURPOSE)) {
-                    ranges[1] = wtype.getRanges(mounted);
-                }
-            }
-        }
-
-        // Infantry range types 4+ are simplified to
-        // the usual range types as displaying 5 range circles
-        // would be visual overkill (and besides this makes
-        // things easier)
-        if (wtype instanceof InfantryWeapon) {
-            InfantryWeapon inftype = (InfantryWeapon) wtype;
-            int iR = inftype.getInfantryRange();
-            ranges[0] = new int[] { 0, iR, iR * 2, iR * 3, 0 };
-            ranges[1] = new int[] { 0, iR / 2, (iR / 2) * 2, (iR / 2) * 3, 0 };
-        }
-
-        // Artillery gets fixed ranges, 100 as an arbitrary
-        // large range for the targeting phase and
-        // 6 to 17 in the other phases as it will be
-        // direct fire then
-        if (wtype.hasFlag(WeaponType.F_ARTILLERY)) {
-            boolean isADA = (mounted.getLinked() != null
-                    && ((AmmoType) mounted.getLinked().getType()).getMunitionType().contains(AmmoType.Munitions.M_ADA));
-            if (gui.getCurrentPanel() instanceof TargetingPhaseDisplay) {
-                ranges[0] = (!isADA? new int[] { 0, 0, 0, 100, 0 } : new int[] { 0, 0, 0, 51, 0 });
-            } else {
-                ranges[0] = (!isADA? new int[] { 6, 0, 0, 17, 0 } : wtype.getRanges(mounted));
-            }
-            ranges[1] = new int[] { 0, 0, 0, 0, 0 };
-        }
-
-        // Override for the various ATM and MML ammos
-        if (atype != null) {
-            if (atype.getAmmoType() == AmmoType.T_ATM) {
-                if (atype.getMunitionType().contains(AmmoType.Munitions.M_EXTENDED_RANGE)) {
-                    ranges[0] = new int[] { 4, 9, 18, 27, 36 };
-                } else if (atype.getMunitionType().contains(AmmoType.Munitions.M_HIGH_EXPLOSIVE)) {
-                    ranges[0] = new int[] { 0, 3, 6, 9, 12 };
-                } else {
-                    ranges[0] = new int[] { 4, 5, 10, 15, 20 };
-                }
-            } else if (atype.getAmmoType() == AmmoType.T_MML) {
-                if (atype.hasFlag(AmmoType.F_MML_LRM)) {
-                    if (atype.getMunitionType().contains(AmmoType.Munitions.M_DEAD_FIRE)) {
-                        ranges[0] = new int[] { 4, 5, 10, 15, 20 };
-                    } else {
-                        ranges[0] = new int[] { 6, 7, 14, 21, 28 };
-                    }
-                } else {
-                    if (atype.getMunitionType().contains(AmmoType.Munitions.M_DEAD_FIRE)) {
-                        ranges[0] = new int[] { 0, 2, 4, 6, 8 };
-                    } else {
-                        ranges[0] = new int[] { 0, 3, 6, 9, 12 };
-                    }
-                }
-            } else if (atype.getAmmoType() == AmmoType.T_IATM) {
-                if (atype.getMunitionType().contains(AmmoType.Munitions.M_EXTENDED_RANGE)) {
-                    ranges[0] = new int[] { 4, 9, 18, 27, 36 };
-                } else if (atype.getMunitionType().contains(AmmoType.Munitions.M_HIGH_EXPLOSIVE)) {
-                    ranges[0] = new int[] { 0, 3, 6, 9, 12 };
-                } else if (atype.getMunitionType().contains(AmmoType.Munitions.M_IATM_IMP)) {
-                    ranges[0] = new int[] { 0, 3, 6, 9, 12 };
-                } else {
-                    ranges[0] = new int[] { 4, 5, 10, 15, 20 };
-                }
-            }
-        }
-        // No minimum range for hotload
-        if ((mounted.getLinked() != null) && mounted.getLinked().isHotLoaded()) {
-            ranges[0][0] = 0;
-        }
-
-        // Aero
-        if (entity.isAirborne()) {
-
-            // prepare fresh ranges, no underwater
-            ranges[0] = new int[] { 0, 0, 0, 0, 0 };
-            ranges[1] = new int[] { 0, 0, 0, 0, 0 };
-            int maxr = WeaponType.RANGE_SHORT;
-
-            // In the WeaponPanel, when the weapon is out of ammo
-            // or otherwise nonfunctional, SHORT range will be listed;
-            // the field of fire is instead disabled
-            // Here as well as in WeaponPanel, choosing a specific ammo
-            // only works for the current player's units
-            if (!mounted.isBreached() && !mounted.isMissing()
-                    && !mounted.isDestroyed() && !mounted.isJammed()
-                    && ((mounted.getLinked() == null)
-                            || (mounted.getLinked().getUsableShotsLeft() > 0))) {
-                maxr = wtype.getMaxRange(mounted);
-
-                if (atype != null) {
-                    if (atype.getAmmoType() == AmmoType.T_ATM) {
-                        if (atype.getMunitionType().contains(AmmoType.Munitions.M_EXTENDED_RANGE)) {
-                            maxr = WeaponType.RANGE_EXT;
-                        } else if (atype.getMunitionType().contains(AmmoType.Munitions.M_HIGH_EXPLOSIVE)) {
-                            maxr = WeaponType.RANGE_SHORT;
-                        }
-                    } else if (atype.getAmmoType() == AmmoType.T_MML) {
-                        if (!atype.hasFlag(AmmoType.F_MML_LRM)) {
-                            maxr = WeaponType.RANGE_SHORT;
-                        }
-                    }
-                }
-
-                // set the standard ranges, depending on capital or no
-                // boolean isCap = wtype.isCapital();
-                int rangeMultiplier = wtype.isCapital() ? 2 : 1;
-                final Game game = unitDisplay.getClientGUI().getClient().getGame();
-                if (game.getBoard().onGround()) {
-                    rangeMultiplier *= 8;
-                }
-
-                for (int rangeIndex = RangeType.RANGE_MINIMUM; rangeIndex <= RangeType.RANGE_EXTREME; rangeIndex++) {
-                    if (maxr >= rangeIndex) {
-                        ranges[0][rangeIndex] = WeaponType.AIRBORNE_WEAPON_RANGES[rangeIndex] * rangeMultiplier;
-                    }
-                }
-            }
-        }
-
-        // pass all this to the Displays
-        int weaponId = entity.getEquipmentNum(mounted);
-        int arc = entity.getWeaponArc(weaponId);
-        int loc = mounted.getLocation();
-
-        if (gui.getCurrentPanel() instanceof FiringDisplay) {
-            // twisting
-            int facing = entity.getFacing();
-            if (entity.isSecondaryArcWeapon(entity.getEquipmentNum(mounted))) {
-                facing = entity.getSecondaryFacing();
-            }
-            // If this is mech with turrets, check to see if the weapon is on a turret.
-            if ((entity instanceof Mech) && (entity.getEquipment(weaponId).isMechTurretMounted())) {
-                // facing is currently adjusted for mek toro twist and facing, adjust for turret facing.
-                facing = (mounted.getFacing() + facing) % 6;
-            }
-            // If this is a tank with dual turrets, check to see if the weapon is a second turret.
-            if ((entity instanceof Tank) &&
-                    (entity.getEquipment(weaponId).getLocation() == ((Tank) entity).getLocTurret2())) {
-                    facing = ((Tank) entity).getDualTurretFacing();
-            }
-            ((FiringDisplay) gui.getCurrentPanel()).setWeaponFieldOfFire(entity, ranges, arc, loc, facing);
-        } else if (gui.getCurrentPanel() instanceof TargetingPhaseDisplay) {
-            // twisting
-            int facing = entity.getFacing();
-            if (entity.isSecondaryArcWeapon(entity.getEquipmentNum(mounted))) {
-                facing = entity.getSecondaryFacing();
-            }
-            ((TargetingPhaseDisplay) gui.getCurrentPanel()).setWeaponFieldOfFire(entity, ranges, arc, loc, facing);
-        } else if (gui.getCurrentPanel() instanceof MovementDisplay) {
-            // no twisting here
-            ((MovementDisplay) gui.getCurrentPanel()).setWeaponFieldOfFire(entity, ranges, arc, loc);
-        }  else if (gui.getCurrentPanel() instanceof DeploymentDisplay) {
-            // no twisting here
-            ((DeploymentDisplay) gui.getCurrentPanel()).setWeaponFieldOfFire(entity, ranges, arc, loc);
-        }
-
-        unitDisplay.getClientGUI().getBoardView().setSensorRange(entity, entity.getPosition());
-    }
-
-    private String formatAmmo(Mounted m) {
+    private String formatAmmo(Mounted<?> m) {
         StringBuffer sb = new StringBuffer(64);
         int ammoIndex = m.getDesc().indexOf(Messages.getString("MechDisplay.0"));
         int loc = m.getLocation();
@@ -2241,7 +2040,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
         return sb.toString();
     }
 
-    private String formatBayWeapon(Mounted m) {
+    private String formatBayWeapon(WeaponMounted m) {
         StringBuffer sb = new StringBuffer(64);
         sb.append(m.getDesc());
         return sb.toString();
@@ -2252,11 +2051,8 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
      *
      * @param mAmmo - the <code>AmmoType</code> of the weapon's loaded ammo.
      */
-    private void updateRangeDisplayForAmmo(Mounted mAmmo) {
-        if (!(mAmmo.getType() instanceof AmmoType)) {
-            return;
-        }
-        AmmoType atype = (AmmoType) mAmmo.getType();
+    private void updateRangeDisplayForAmmo(AmmoMounted mAmmo) {
+        AmmoType atype = mAmmo.getType();
         // Only override the display for the various ATM and MML ammos
         if (atype.getAmmoType() == AmmoType.T_ATM) {
             if (atype.getMunitionType().contains(AmmoType.Munitions.M_EXTENDED_RANGE)) {
@@ -2372,8 +2168,8 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
         onResize();
     } // End private void updateRangeDisplayForAmmo( AmmoType )
 
-    private void updateAttackValues(Mounted weapon, Mounted ammo) {
-        WeaponType wtype = (WeaponType) weapon.getType();
+    private void updateAttackValues(WeaponMounted weapon, AmmoMounted ammo) {
+        WeaponType wtype = weapon.getType();
         // update Attack Values and change range
         int avShort = wtype.getRoundShortAV();
         int avMed = wtype.getRoundMedAV();
@@ -2383,7 +2179,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
 
         // change range and attack values based upon ammo
         if (null != ammo) {
-            AmmoType atype = (AmmoType) ammo.getType();
+            AmmoType atype = ammo.getType();
             double[] changes = changeAttackValues(atype, avShort, avMed,
                                                   avLong, avExt, maxr);
             avShort = (int) changes[0];
@@ -2579,10 +2375,10 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
 
     }
 
-    private void compileWeaponBay(Mounted weapon, boolean isCapital) {
+    private void compileWeaponBay(WeaponMounted weapon, boolean isCapital) {
 
-        Vector<Integer> bayWeapons = weapon.getBayWeapons();
-        WeaponType wtype = (WeaponType) weapon.getType();
+        List<WeaponMounted> bayWeapons = weapon.getBayWeapons();
+        WeaponType wtype = weapon.getType();
 
         // set default values in case if statement stops
         wShortAVR.setText("---");
@@ -2601,15 +2397,14 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
         double avExt = 0;
         int maxr = WeaponType.RANGE_SHORT;
 
-        for (int wId : bayWeapons) {
-            Mounted m = entity.getEquipment(wId);
+        for (WeaponMounted m : bayWeapons) {
             if (!m.isBreached()
                 && !m.isMissing()
                 && !m.isDestroyed()
                 && !m.isJammed()
                 && ((m.getLinked() == null) || (m.getLinked()
                                                  .getUsableShotsLeft() > 0))) {
-                WeaponType bayWType = ((WeaponType) m.getType());
+                WeaponType bayWType = m.getType();
                 heat = heat + m.getCurrentHeat();
                 double mAVShort = bayWType.getShortAV();
                 double mAVMed = bayWType.getMedAV();
@@ -2619,8 +2414,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
 
                 // deal with any ammo adjustments
                 if (null != m.getLinked()) {
-                    double[] changes = changeAttackValues((AmmoType) m
-                                                                  .getLinked().getType(), mAVShort, mAVMed,
+                    double[] changes = changeAttackValues((AmmoType) m.getLinked().getType(), mAVShort, mAVMed,
                                                           mAVLong, mAVExt, mMaxR);
                     mAVShort = changes[0];
                     mAVMed = changes[1];
@@ -2713,14 +2507,13 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
             if (currPanel instanceof FiringDisplay) {
                 FiringDisplay firingDisplay = (FiringDisplay) currPanel;
 
-                Mounted mounted = null;
-                WeaponListModel weaponModel = (WeaponListModel) weaponList
-                        .getModel();
+                WeaponMounted mounted = null;
+                WeaponListModel weaponModel = (WeaponListModel) weaponList.getModel();
                 if (weaponList.getSelectedIndex() != -1) {
                     mounted = weaponModel.getWeaponAt(weaponList
                             .getSelectedIndex());
                 }
-                Mounted prevMounted = null;
+                WeaponMounted prevMounted = null;
                 if ((event.getLastIndex() != -1)
                         && (event.getLastIndex() < weaponModel.getSize())) {
                     prevMounted = weaponModel.getWeaponAt(event.getLastIndex());
@@ -2753,8 +2546,7 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
             // Tell the <Phase>Display to update the
             // firing arc info when a weapon has been de-selected
             if (weaponList.getSelectedIndex() == -1) {
-                unitDisplay.getClientGUI().getBoardView().clearFieldOfFire();
-                unitDisplay.getClientGUI().getBoardView().clearSensorsRanges();
+                unitDisplay.getClientGUI().clearTemporarySprites();
             }
         }
         onResize();
@@ -2775,11 +2567,10 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
             if (weaponList.getSelectedIndex() == -1) {
                 return;
             }
-            Mounted mWeap = ((WeaponListModel) weaponList.getModel())
-                    .getWeaponAt(n);
-            Mounted oldWeap = mWeap;
-            Mounted oldAmmo = mWeap.getLinked();
-            Mounted mAmmo = vAmmo.get(m_chAmmo.getSelectedIndex());
+            WeaponMounted mWeap = ((WeaponListModel) weaponList.getModel()).getWeaponAt(n);
+            WeaponMounted oldWeap = mWeap;
+            AmmoMounted oldAmmo = mWeap.getLinkedAmmo();
+            AmmoMounted mAmmo = vAmmo.get(m_chAmmo.getSelectedIndex());
             // if this is a weapon bay, then this is not what we want
             boolean isBay = false;
             if (mWeap.getType() instanceof BayWeapon) {
@@ -2789,21 +2580,21 @@ public class WeaponPanel extends PicMap implements ListSelectionListener, Action
                     return;
                 }
                 //
-                Mounted sWeap = entity.getEquipment(mWeap.getBayWeapons()
-                        .elementAt(n));
+                WeaponMounted sWeap = mWeap.getBayWeapon(n);
                 // cycle through all weapons of the same type and load with
                 // this ammo
-                for (int wid : mWeap.getBayWeapons()) {
-                    Mounted bWeap = entity.getEquipment(wid);
-                    // FIXME: Consider new AmmoType::equals / BombType::equals
-                    if (bWeap.getType().equals(sWeap.getType())) {
-                        entity.loadWeapon(bWeap, mAmmo);
-                        // Alert the server of the update.
-                        clientgui.getClient().sendAmmoChange(
-                                entity.getId(),
-                                entity.getEquipmentNum(bWeap),
-                                entity.getEquipmentNum(mAmmo),
-                                0);
+                if (sWeap != null) {
+                    for (WeaponMounted bWeap : mWeap.getBayWeapons()) {
+                        // FIXME: Consider new AmmoType::equals / BombType::equals
+                        if (bWeap.getType().equals(sWeap.getType())) {
+                            entity.loadWeapon(bWeap, mAmmo);
+                            // Alert the server of the update.
+                            clientgui.getClient().sendAmmoChange(
+                                    entity.getId(),
+                                    entity.getEquipmentNum(bWeap),
+                                    entity.getEquipmentNum(mAmmo),
+                                    0);
+                        }
                     }
                 }
             } else {

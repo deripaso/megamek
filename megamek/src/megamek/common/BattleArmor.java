@@ -17,6 +17,9 @@ import megamek.client.ui.swing.calculationReport.CalculationReport;
 import megamek.client.ui.swing.calculationReport.DummyCalculationReport;
 import megamek.common.cost.BattleArmorCostCalculator;
 import megamek.common.enums.AimingMode;
+import megamek.common.equipment.AmmoMounted;
+import megamek.common.equipment.MiscMounted;
+import megamek.common.equipment.WeaponMounted;
 import megamek.common.options.OptionsConstants;
 import megamek.common.planetaryconditions.Atmosphere;
 import megamek.common.planetaryconditions.PlanetaryConditions;
@@ -516,6 +519,7 @@ public class BattleArmor extends Infantry {
             mp++;
         }
 
+        // MM is concerned with in-game conditions that impact Partial Wing mp
         if ((game != null)) {
             PlanetaryConditions conditions = game.getPlanetaryConditions();
             boolean ignoreGameLessThanThin = mpCalculationSetting.ignoreWeather
@@ -523,6 +527,11 @@ public class BattleArmor extends Infantry {
             if ((mp > 0)
                     && hasWorkingMisc(MiscType.F_PARTIAL_WING)
                     && ignoreGameLessThanThin) {
+                mp++;
+            }
+        } else {
+            // MML just cares that the Partial Wing exists and is installed
+            if ((mp > 0) && hasWorkingMisc(MiscType.F_PARTIAL_WING)) {
                 mp++;
             }
         }
@@ -1238,7 +1247,7 @@ public class BattleArmor extends Infantry {
     }
 
     @Override
-    public boolean loadWeapon(Mounted mounted, Mounted mountedAmmo) {
+    public boolean loadWeapon(WeaponMounted mounted, AmmoMounted mountedAmmo) {
         // BA must carry the ammo in same location as the weapon.
         // except for mine launcher mines
         // This allows for squad weapons and individual trooper weapons
@@ -1252,7 +1261,7 @@ public class BattleArmor extends Infantry {
     }
 
     @Override
-    public boolean loadWeaponWithSameAmmo(Mounted mounted, Mounted mountedAmmo) {
+    public boolean loadWeaponWithSameAmmo(WeaponMounted mounted, AmmoMounted mountedAmmo) {
         // BA must carry the ammo in same location as the weapon.
         // except for mine launcher mines
         // This allows for squad weapons and individual trooper weapons
@@ -1268,7 +1277,7 @@ public class BattleArmor extends Infantry {
     @Override
     public int getVibroClaws() {
         int claws = 0;
-        for (Mounted mounted : getMisc()) {
+        for (MiscMounted mounted : getMisc()) {
             if (mounted.getType().hasFlag(MiscType.F_VIBROCLAW)) {
                 claws++;
             }
@@ -1976,5 +1985,10 @@ public class BattleArmor extends Infantry {
     @Override
     public int firstArmorIndex() {
         return 1;
+    }
+
+    @Override
+    public int getGenericBattleValue() {
+        return (int) Math.round(Math.exp(3.157 + 1.514*Math.log(getWeight())));
     }
 }

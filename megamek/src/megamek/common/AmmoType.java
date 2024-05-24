@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
+import megamek.common.equipment.WeaponMounted;
 import org.apache.commons.lang.ArrayUtils;
 
 import megamek.common.options.OptionsConstants;
@@ -359,6 +360,9 @@ public class AmmoType extends EquipmentType {
 
     // Short name of Ammo or RS Printing
     protected String shortName = "";
+
+    // short name of base ammo type shared by all munitions
+    protected String baseName = "";
 
     // Collate artillery / artillery cannon types for flak check
     // Add ADA here when implemented
@@ -2753,7 +2757,7 @@ public class AmmoType extends EquipmentType {
                         .setStaticTechLevel(SimpleTechLevel.ADVANCED),
                 "357, TO"));
 
-        munitions.add(new MunitionMutator("Davy Crocket-M", 5, Munitions.M_DAVY_CROCKETT_M,
+        munitions.add(new MunitionMutator("Davy Crockett-M", 5, Munitions.M_DAVY_CROCKETT_M,
                 new TechAdvancement(TECH_BASE_IS).setTechRating(RATING_D)
                         .setAvailability(RATING_F, RATING_F, RATING_F, RATING_F)
                         .setISAdvancement(2412, DATE_NONE, DATE_NONE, 2830, 3044)
@@ -3023,7 +3027,7 @@ public class AmmoType extends EquipmentType {
         AmmoType.createMunitions(thumperAmmos, munitions);
 
         // Make Davy Crockett-Ms for Long Toms, but not Thumper or Sniper.
-        munitions.add(new MunitionMutator("Davy Crocket-M", 5, Munitions.M_DAVY_CROCKETT_M,
+        munitions.add(new MunitionMutator("Davy Crockett-M", 5, Munitions.M_DAVY_CROCKETT_M,
                 new TechAdvancement(TECH_BASE_IS).setTechRating(RATING_D)
                         .setAvailability(RATING_F, RATING_F, RATING_F, RATING_F)
                         .setISAdvancement(2412, DATE_NONE, DATE_NONE, 2830, 3044)
@@ -13783,6 +13787,7 @@ public class AmmoType extends EquipmentType {
             AmmoType munition = new AmmoType();
             munition.setTonnage(base.getTonnage(null));
             munition.subMunitionName = name;
+            munition.baseName = base.shortName;
 
             // Manipulate the base round's names, depending on ammoType.
             switch (base.ammoType) {
@@ -13836,6 +13841,7 @@ public class AmmoType extends EquipmentType {
                     // ADA full name is embarrassingly long.
                     if (base.name.contains("ADA")) {
                         munition.shortName = "ADA Missile";
+                        munition.addLookupName("ADA");
                     } else {
                         munition.shortName = munition.name.replace("Prototype ", "p");
                     }
@@ -14309,6 +14315,10 @@ public class AmmoType extends EquipmentType {
         return shortName.isBlank() ? getName() : shortName;
     }
 
+    public String getBaseName() {
+        return baseName.isBlank() ? getShortName() : baseName;
+    }
+
     public String getSubMunitionName() {
         return subMunitionName.isBlank() ? getShortName() : subMunitionName;
     }
@@ -14330,6 +14340,8 @@ public class AmmoType extends EquipmentType {
             return false;
         } else if (!(ammo.getType() instanceof AmmoType)) {
             return false;
+        } else if (weaponType.hasFlag(WeaponType.F_ONESHOT)) {
+            return ammo.getUsableShotsLeft() > 0 && isAmmoValid((AmmoType) ammo.getType(), weaponType);
         } else {
             return ammo.isAmmoUsable() && isAmmoValid((AmmoType) ammo.getType(), weaponType);
         }
@@ -14366,17 +14378,16 @@ public class AmmoType extends EquipmentType {
      * @return true/false - null arguments or linked ammo bin for the weapon result
      *         in false
      */
-    public static boolean canSwitchToAmmo(Mounted weapon, AmmoType otherAmmo) {
+    public static boolean canSwitchToAmmo(WeaponMounted weapon, AmmoType otherAmmo) {
         // no ammo switching if the weapon doesn't exist
         // or if it doesn't have an ammo bin
         // or the other ammo type doesn't exist
-        if ((weapon == null) || (weapon.getLinked() == null)
-                || (!(weapon.getLinked().getType() instanceof AmmoType))
+        if ((weapon == null) || (weapon.getLinkedAmmo() == null)
                 || (otherAmmo == null)) {
             return false;
         }
 
-        AmmoType currentAmmoType = (AmmoType) weapon.getLinked().getType();
+        AmmoType currentAmmoType = weapon.getLinkedAmmo().getType();
 
         // Ammo of the same type and rack size should be allowed
         boolean ammoOfSameType = currentAmmoType.equalsAmmoTypeOnly(otherAmmo)

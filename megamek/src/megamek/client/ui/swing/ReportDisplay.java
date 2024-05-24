@@ -86,12 +86,15 @@ public class ReportDisplay extends StatusBarPhaseDisplay  {
     private static final String RD_REPORTDISPLAY = "ReportDisplay.";
     private static final String RD_TOOLTIP = ".tooltip";
 
+    private final ClientGUI clientgui;
+
     /**
      * Creates and lays out a new movement phase display for the specified
      * clientgui.getClient().
      */
     public ReportDisplay(ClientGUI clientgui) {
         super(clientgui);
+        this.clientgui = clientgui;
 
         if (clientgui == null) {
             return;
@@ -109,7 +112,7 @@ public class ReportDisplay extends StatusBarPhaseDisplay  {
 
         clientgui.getClient().getGame().addGameListener(this);
         clientgui.getBoardView().addBoardViewListener(this);
-        clientgui.getBoardView().addKeyListener(this);
+        clientgui.getBoardView().getPanel().addKeyListener(this);
     }
 
     @Override
@@ -258,6 +261,6 @@ public class ReportDisplay extends StatusBarPhaseDisplay  {
     public void removeAllListeners() {
         clientgui.getClient().getGame().removeGameListener(this);
         clientgui.getBoardView().removeBoardViewListener(this);
-        clientgui.getBoardView().removeKeyListener(this);
+        clientgui.getBoardView().getPanel().removeKeyListener(this);
     }
 }
