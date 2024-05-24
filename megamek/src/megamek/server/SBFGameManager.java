@@ -97,7 +97,27 @@ public final class SBFGameManager extends AbstractGameManager {
         return Collections.emptyList();
     }
 
-    @Override
+  @Override
+  public int processManualIntD6CFR(int playerID, String title, String description, int dice) {
+    return 0;
+  }
+
+  @Override
+  public int processManualRollD6CFR(int playerID, String title, String description, int dice) {
+    return 0;
+  }
+
+  @Override
+  public void addReport(Report r) {
+
+  }
+
+  @Override
+  public int processManualIniCFR(int playerID, String title, String description, int dice) {
+    return 0;
+  }
+
+  @Override
     public void addReport(ReportEntry r) {
         pendingReports.add((Report) r);
     }

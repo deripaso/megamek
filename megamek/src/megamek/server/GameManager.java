@@ -9863,7 +9863,13 @@ public class GameManager extends AbstractGameManager {
       }
     }
   }
-    /**
+
+  @Override
+  public void addReport(Report r) {
+//TODO - check wtf?
+  }
+
+  /**
      * If an aero unit takes off in the same turn that other units loaded, then
      * it risks damage to itself and those units
      *

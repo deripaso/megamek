@@ -348,7 +348,7 @@ public class ScenarioV1 extends HashMap<String, Collection<String>> implements S
         for (DamagePlan damagePlan : damagePlans) {
             LogManager.getLogger().debug(String.format("Applying damage to %s", damagePlan.entity.getShortName()));
             for (int y = 0; y < damagePlan.nBlocks; ++ y) {
-                HitData hit = damagePlan.entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT);
+                HitData hit = damagePlan.entity.rollHitLocation(ToHitData.HIT_NORMAL, ToHitData.SIDE_FRONT, damagePlan.entity.getId(), false); //TODO - find out is this crit or not?
                 LogManager.getLogger().debug("[s.damageEntity(dp.entity, hit, 5)]");
                 m.damageEntity(damagePlan.entity, hit, 5);
             }

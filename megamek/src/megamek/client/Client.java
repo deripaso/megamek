@@ -1058,7 +1058,7 @@ public class Client extends AbstractClient implements IClientCommandHandler {
                     break;
                 case SENDING_SPECIAL_HEX_DISPLAY:
                     game.getBoard().setSpecialHexDisplayTable(
-                            (Hashtable<Coords, Collection<SpecialHexDisplay>>) c.getObject(0));
+                            (Hashtable<Coords, Collection<SpecialHexDisplay>>) packet.getObject(0));
                     game.processGameEvent(new GameBoardChangeEvent(this));
                     break;
                 case SENDING_AVAILABLE_MAP_SIZES:
