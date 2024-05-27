@@ -191,14 +191,14 @@ public class Compute {
     }
 
     //Manual dice input as Integer
-    public static int manualD6(int dice, Entity entity, String rolldescription) {
-    int result = DiceThrower.ThrowD6(dice, entity, rolldescription);
+    public static int manualD6(int dice, Entity entity, String rolldescription, int targetRoll) {
+    int result = DiceThrower.ThrowD6(dice, entity, rolldescription, targetRoll);
     return result;
     }
 
     //Manual D6 input as Roll
-    public static Roll manualRollD6(int dice, Entity entity, String rolldescription) {
-      Roll roll = DiceThrower.mRollD6(dice,entity,rolldescription);
+    public static Roll manualRollD6(int dice, Entity entity, String rolldescription,int targetRoll) {
+      Roll roll = DiceThrower.mRollD6(dice,entity,rolldescription, targetRoll);
       return roll;
     }
 

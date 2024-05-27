@@ -204,6 +204,7 @@ public class GameManager extends AbstractGameManager {
         commands.add(new JoinTeamCommand(server));
         commands.add(new AllowGameMasterCommand(server, this));
         commands.add(new GameMasterCommand(server));
+        commands.add(new SetEntityMRICommand(server, this));
         return commands;
     }
 
@@ -9803,8 +9804,8 @@ public class GameManager extends AbstractGameManager {
   }
 
   @Override
-  public int processManualIntD6CFR(int playerID, String title, String description, int dice) {
-    send(playerID, new Packet(PacketCommand.CLIENT_FEEDBACK_REQUEST, PacketCommand.CFR_INT_D6_THROW, title, description, dice));
+  public int processManualIntD6CFR(int playerID, String title, String description, int dice, int targetRoll) {
+    send(playerID, new Packet(PacketCommand.CLIENT_FEEDBACK_REQUEST, PacketCommand.CFR_INT_D6_THROW, title, description, dice, targetRoll));
 
     while (true) {
       synchronized (cfrPacketQueue) {
@@ -9834,8 +9835,8 @@ public class GameManager extends AbstractGameManager {
   }
 
   @Override
-  public int processManualRollD6CFR(int playerID, String title, String description, int dice) {
-    send(playerID, new Packet(PacketCommand.CLIENT_FEEDBACK_REQUEST, PacketCommand.CFR_ROLL_D6_THROW, title, description, dice));
+  public int processManualRollD6CFR(int playerID, String title, String description, int dice, int targetRoll) {
+    send(playerID, new Packet(PacketCommand.CLIENT_FEEDBACK_REQUEST, PacketCommand.CFR_ROLL_D6_THROW, title, description, dice, targetRoll));
 
     while (true) {
       synchronized (cfrPacketQueue) {
@@ -12069,7 +12070,7 @@ public class GameManager extends AbstractGameManager {
       if (!manPsr || entity.getOwner().isBot()) {
         diceRoll = entity.getCrew().rollPilotingSkill();
       } else {
-        diceRoll = entity.getCrew().rollPilotingSkill(entity, entity.getDisplayName()+" Piloting roll "+roll.getPlainDesc());
+        diceRoll = entity.getCrew().rollPilotingSkill(entity, entity.getDisplayName()+" "+roll.getValue()+" Piloting roll "+roll.getPlainDesc());
       }
         r = new Report(2185);
         r.subject = entity.getId();
@@ -12214,7 +12215,7 @@ public class GameManager extends AbstractGameManager {
         if (!manPsr || entity.getOwner().isBot()) {
           diceRoll = entity.getCrew().rollPilotingSkill();
         } else {
-          diceRoll = entity.getCrew().rollPilotingSkill(entity, entity.getDisplayName()+" Piloting roll "+roll.getPlainDesc());
+          diceRoll = entity.getCrew().rollPilotingSkill(entity, entity.getDisplayName()+" "+roll.getValue()+" Piloting roll "+roll.getPlainDesc());
         }
 
         r = new Report(2185);

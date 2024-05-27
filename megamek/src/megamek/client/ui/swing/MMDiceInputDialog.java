@@ -11,7 +11,7 @@ public class MMDiceInputDialog  {
 
 
   // default constructor
-  public static int throwDice(JFrame owner, String title, String rolldescription, int numDice) {
+  public static int throwDice(JFrame owner, String title, String rolldescription, int numDice, int numTarget) {
     DiceInputDialog dialog = new DiceInputDialog(owner, title, rolldescription, numDice);
     return dialog.throwResult;
     }
@@ -45,7 +45,7 @@ public class MMDiceInputDialog  {
       panButtons.add(tt);
       Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
       setSize(600,800);
-      setLocation((screenSize.width - getSize().width) / 4, (screenSize.height - getSize().height) / 4); // removed owner. berfor these two
+      setLocation((screenSize.width - getSize().width) / 4, (screenSize.height - getSize().height) / 4); // removed owner before these two
 
       addWindowListener( new WindowAdapter() {
         public void windowOpened( WindowEvent e ){ //TODO - more research on swing behavior

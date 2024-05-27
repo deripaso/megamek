@@ -92,6 +92,7 @@ public class Client extends AbstractClient implements IClientCommandHandler {
         registerCommand(new LookCommand(this));
         registerCommand(new ChatCommand(this));
         registerCommand(new DoneCommand(this));
+        registerCommand(new SetEntityMRICommand(this));
         ShowTileCommand tileCommand = new ShowTileCommand(this);
         registerCommand(tileCommand);
         for (String direction : ShowTileCommand.directions) {
@@ -1037,91 +1038,92 @@ public class Client extends AbstractClient implements IClientCommandHandler {
                     }
                 }
 
-                    try (OutputStream os = new FileOutputStream(localFile);
-                         BufferedOutputStream bos = new BufferedOutputStream(os)) {
-                        List<Integer> data = (List<Integer>) packet.getObject(1);
-                        for (Integer d : data) {
-                            bos.write(d);
-                        }
-                        bos.flush();
-                    } catch (Exception ex) {
-                        LogManager.getLogger().error("Unable to save file " + sFinalFile, ex);
+                try (OutputStream os = new FileOutputStream(localFile);
+                     BufferedOutputStream bos = new BufferedOutputStream(os)) {
+                    List<Integer> data = (List<Integer>) packet.getObject(1);
+                    for (Integer d : data) {
+                        bos.write(d);
                     }
-                    break;
-                case LOAD_SAVEGAME:
-                    String loadFile = (String) packet.getObject(0);
-                    try {
-                        sendLoadGame(new File(MMConstants.SAVEGAME_DIR, loadFile));
-                    } catch (Exception ex) {
-                        LogManager.getLogger().error("Unable to load savegame file: " + loadFile, ex);
-                    }
-                    break;
-                case SENDING_SPECIAL_HEX_DISPLAY:
-                    game.getBoard().setSpecialHexDisplayTable(
-                            (Hashtable<Coords, Collection<SpecialHexDisplay>>) packet.getObject(0));
-                    game.processGameEvent(new GameBoardChangeEvent(this));
-                    break;
-                case SENDING_AVAILABLE_MAP_SIZES:
-                    availableSizes = (Set<BoardDimensions>) packet.getObject(0);
-                    game.processGameEvent(new GameSettingsChangeEvent(this));
-                    break;
-                case ENTITY_NOVA_NETWORK_CHANGE:
-                    receiveEntityNovaNetworkModeChange(packet);
-                    break;
-                case CLIENT_FEEDBACK_REQUEST:
-                    final PacketCommand cfrType = (PacketCommand) packet.getData()[0];
-                    GameCFREvent cfrEvt = new GameCFREvent(this, cfrType);
-                    switch (cfrType) {
-                        case CFR_DOMINO_EFFECT:
-                            cfrEvt.setEntityId((int) packet.getData()[1]);
-                            break;
-                        case CFR_AMS_ASSIGN:
-                            cfrEvt.setEntityId((int) packet.getData()[1]);
-                            cfrEvt.setAmsEquipNum((int) packet.getData()[2]);
-                            cfrEvt.setWAAs((List<WeaponAttackAction>) packet.getData()[3]);
-                            break;
-                        case CFR_APDS_ASSIGN:
-                            cfrEvt.setApdsDists((List<Integer>) packet.getData()[2]);
-                            cfrEvt.setWAAs((List<WeaponAttackAction>) packet.getData()[3]);
-                            break;
-                        case CFR_HIDDEN_PBS:
-                            cfrEvt.setEntityId((int) packet.getObject(1));
-                            cfrEvt.setTargetId((int) packet.getObject(2));
-                            break;
-                        case CFR_TELEGUIDED_TARGET:
-                            cfrEvt.setTeleguidedMissileTargets((List<Integer>) packet.getObject(1));
-                            cfrEvt.setTmToHitValues((List<Integer>) packet.getObject(2));
-                            break;
-                        case CFR_TAG_TARGET:
-                            cfrEvt.setTAGTargets((List<Integer>) packet.getObject(1));
-                            cfrEvt.setTAGTargetTypes((List<Integer>) packet.getObject(2));
-                            break;
-                      case CFR_INITIATIVE_THROW:
+                    bos.flush();
+                } catch (Exception ex) {
+                    LogManager.getLogger().error("Unable to save file " + sFinalFile, ex);
+                }
+                break;
+            case LOAD_SAVEGAME:
+                String loadFile = (String) packet.getObject(0);
+                try {
+                    sendLoadGame(new File(MMConstants.SAVEGAME_DIR, loadFile));
+                } catch (Exception ex) {
+                    LogManager.getLogger().error("Unable to load savegame file: " + loadFile, ex);
+                }
+                break;
+            case SENDING_SPECIAL_HEX_DISPLAY:
+                game.getBoard().setSpecialHexDisplayTable(
+                        (Hashtable<Coords, Collection<SpecialHexDisplay>>) packet.getObject(0));
+                game.processGameEvent(new GameBoardChangeEvent(this));
+                break;
+            case SENDING_AVAILABLE_MAP_SIZES:
+                availableSizes = (Set<BoardDimensions>) packet.getObject(0);
+                game.processGameEvent(new GameSettingsChangeEvent(this));
+                break;
+            case ENTITY_NOVA_NETWORK_CHANGE:
+                receiveEntityNovaNetworkModeChange(packet);
+                break;
+            case CLIENT_FEEDBACK_REQUEST:
+                final PacketCommand cfrType = (PacketCommand) packet.getData()[0];
+                GameCFREvent cfrEvt = new GameCFREvent(this, cfrType);
+                switch (cfrType) {
+                    case CFR_DOMINO_EFFECT:
+                        cfrEvt.setEntityId((int) packet.getData()[1]);
+                        break;
+                    case CFR_AMS_ASSIGN:
+                        cfrEvt.setEntityId((int) packet.getData()[1]);
+                        cfrEvt.setAmsEquipNum((int) packet.getData()[2]);
+                        cfrEvt.setWAAs((List<WeaponAttackAction>) packet.getData()[3]);
+                        break;
+                    case CFR_APDS_ASSIGN:
+                        cfrEvt.setEntityId((int) packet.getData()[1]);
+                        cfrEvt.setApdsDists((List<Integer>) packet.getData()[2]);
+                        cfrEvt.setWAAs((List<WeaponAttackAction>) packet.getData()[3]);
+                        break;
+                    case CFR_HIDDEN_PBS:
+                        cfrEvt.setEntityId((int) packet.getObject(1));
+                        cfrEvt.setTargetId((int) packet.getObject(2));
+                        break;
+                    case CFR_TELEGUIDED_TARGET:
+                        cfrEvt.setTeleguidedMissileTargets((List<Integer>) packet.getObject(1));
+                        cfrEvt.setTmToHitValues((List<Integer>) packet.getObject(2));
+                        break;
+                    case CFR_TAG_TARGET:
+                        cfrEvt.setTAGTargets((List<Integer>) packet.getObject(1));
+                        cfrEvt.setTAGTargetTypes((List<Integer>) packet.getObject(2));
+                        break;
+                    case CFR_INITIATIVE_THROW:
                         cfrEvt.setRollTitle((String) packet.getData()[1]);
                         cfrEvt.setRollDescription((String) packet.getData()[2]);
                         cfrEvt.setNumDice((int) packet.getData()[3]);
                         break;
-                      case CFR_INT_D6_THROW:
+                    case CFR_INT_D6_THROW:
                         cfrEvt.setRollTitle((String) packet.getData()[1]);
                         cfrEvt.setRollDescription((String) packet.getData()[2]);
                         cfrEvt.setNumDice((int) packet.getData()[3]);
                         break;
-                      case CFR_ROLL_D6_THROW:
+                    case CFR_ROLL_D6_THROW:
                         cfrEvt.setRollTitle((String) packet.getData()[1]);
                         cfrEvt.setRollDescription((String) packet.getData()[2]);
                         cfrEvt.setNumDice((int) packet.getData()[3]);
                         break;
-                        default:
-                            break;
-                    }
-                    game.processGameEvent(cfrEvt);
-                    break;
-                case GAME_VICTORY_EVENT:
-                    GameVictoryEvent gve = new GameVictoryEvent(this, game);
-                    game.processGameEvent(gve);
-                    break;
-                default:
-                  return false;
+                    default:
+                        break;
+                }
+                game.processGameEvent(cfrEvt);
+                break;
+            case GAME_VICTORY_EVENT:
+                GameVictoryEvent gve = new GameVictoryEvent(this, game);
+                game.processGameEvent(gve);
+                break;
+            default:
+                return false;
         }
         return true;
     }

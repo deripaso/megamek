@@ -324,23 +324,23 @@ public class GameOptions extends AbstractOptions {
         addOption(rpg, OptionsConstants.RPG_MANUAL_SHUTDOWN, false);
         addOption(rpg, OptionsConstants.RPG_BEGIN_SHUTDOWN, false);
 
-      IBasicOptionGroup manualinput = addGroup("ManualInput");
-      addOption(manualinput, OptionsConstants.MAN_INITIATIVE, false);
-      addOption(manualinput, OptionsConstants.MAN_PILOTING, false);
-      addOption(manualinput, OptionsConstants.MAN_HIT, false);
-      addOption(manualinput, OptionsConstants.MAN_CLUSTER, false);
-      addOption(manualinput, OptionsConstants.MAN_HIT_LOCATION, false);
-      addOption(manualinput, OptionsConstants.MAN_DETERMINE_CRITICALS, false);
-      addOption(manualinput, OptionsConstants.MAN_CRITICAL_LOCATION, false);
-      addOption(manualinput, OptionsConstants.MAN_PHYSICAL_ATTACK, false);
-      addOption(manualinput, OptionsConstants.MAN_PUNCH_LOCATION, false);
-      addOption(manualinput, OptionsConstants.MAN_KICK_LOCATION, false);
-      addOption(manualinput, OptionsConstants.MAN_LOSE_CONSCIOUSNESS, false);
-      addOption(manualinput, OptionsConstants.MAN_HEAT_SHUTDOWN, false);
-      addOption(manualinput, OptionsConstants.MAN_HEAT_AMMO_EXPLOSION, false);
-      addOption(manualinput, OptionsConstants.MAN_FACING_DIRECTION, false);
-      addOption(manualinput, OptionsConstants.MAN_SPOTLIGHT_HIT, false);
-      addOption(manualinput, OptionsConstants.MAN_UNJAM, false);
+        IBasicOptionGroup manualinput = addGroup("ManualInput");
+        addOption(manualinput, OptionsConstants.MAN_INITIATIVE, false);
+        addOption(manualinput, OptionsConstants.MAN_PILOTING, false);
+        addOption(manualinput, OptionsConstants.MAN_HIT, false);
+        addOption(manualinput, OptionsConstants.MAN_CLUSTER, false);
+        addOption(manualinput, OptionsConstants.MAN_HIT_LOCATION, false);
+        addOption(manualinput, OptionsConstants.MAN_DETERMINE_CRITICALS, false);
+        addOption(manualinput, OptionsConstants.MAN_CRITICAL_LOCATION, false);
+        addOption(manualinput, OptionsConstants.MAN_PHYSICAL_ATTACK, false);
+        addOption(manualinput, OptionsConstants.MAN_PUNCH_LOCATION, false);
+        addOption(manualinput, OptionsConstants.MAN_KICK_LOCATION, false);
+        addOption(manualinput, OptionsConstants.MAN_LOSE_CONSCIOUSNESS, false);
+        addOption(manualinput, OptionsConstants.MAN_HEAT_SHUTDOWN, false);
+        addOption(manualinput, OptionsConstants.MAN_HEAT_AMMO_EXPLOSION, false);
+        addOption(manualinput, OptionsConstants.MAN_FACING_DIRECTION, false);
+        addOption(manualinput, OptionsConstants.MAN_SPOTLIGHT_HIT, false);
+        addOption(manualinput, OptionsConstants.MAN_UNJAM, false);
     }
 
     public Vector<IOption> loadOptions() {

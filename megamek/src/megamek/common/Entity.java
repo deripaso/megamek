@@ -838,6 +838,10 @@ public abstract class Entity extends TurnOrdered implements Transporter, Targeta
 
     /** The icon for this unit; This is empty unless the unit file has an embedded icon. */
     protected Base64Image icon = new Base64Image();
+  /**
+   * The option for enabling or disabling manual dice rolls for this entity.
+   */
+  private boolean manualRollInputEnabled = false;
 
     /**
      * Generates a new, blank, entity.
@@ -1773,6 +1777,9 @@ public abstract class Entity extends TurnOrdered implements Transporter, Targeta
         if (hullDown) {
             prone = false;
         }
+    }
+    public void setMRIOption(boolean mri) {
+      manualRollInputEnabled = mri;
     }
 
     /**

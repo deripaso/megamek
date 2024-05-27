@@ -98,12 +98,12 @@ public final class SBFGameManager extends AbstractGameManager {
     }
 
   @Override
-  public int processManualIntD6CFR(int playerID, String title, String description, int dice) {
+  public int processManualIntD6CFR(int playerID, String title, String description, int dice, int targetRoll) {
     return 0;
   }
 
   @Override
-  public int processManualRollD6CFR(int playerID, String title, String description, int dice) {
+  public int processManualRollD6CFR(int playerID, String title, String description, int dice, int targetRoll) {
     return 0;
   }
 

@@ -56,14 +56,14 @@ public class DiceThrower {
     return rollResult;
   }
 
-  public static int ThrowD6(int dice, Entity entity, String rollDescription) {
+  public static int ThrowD6(int dice, Entity entity, String rollDescription, int targetRoll) {
     int playerId = entity.getOwnerId();
     String playerName = entity.getOwner().getName();
     String rollTitle = playerName+"'s "+dice+"D6 roll";
 
     IGameManager gm = Server.getServerInstance().getGameManager();
 
-    int rollResult = gm.processManualIntD6CFR(playerId, rollTitle, rollDescription, dice);
+    int rollResult = gm.processManualIntD6CFR(playerId, rollTitle, rollDescription, dice, targetRoll);
 
     return rollResult;
         /*JFrame frame = new JFrame();
@@ -71,13 +71,13 @@ public class DiceThrower {
     //LogManager.getLogger().info(playerName+" dice for "+rolltype+entityName + diceThrow);*/
   }
 
-  public static Roll mRollD6(int dice, Entity entity, String rollDescription) {
+  public static Roll mRollD6(int dice, Entity entity, String rollDescription, int tartgetRoll) {
     int playerId = entity.getOwnerId();
     String playerName = entity.getOwner().getName();
     String rollTitle = playerName+"'s "+dice+"D6 roll";
     IGameManager gm = Server.getServerInstance().getGameManager();
 
-    int roll = gm.processManualRollD6CFR(playerId, rollTitle, rollDescription, dice);
+    int roll = gm.processManualRollD6CFR(playerId, rollTitle, rollDescription, dice, tartgetRoll);
     Roll rollResult = new MMRoll.manRoll(dice,0, roll);
 
     return rollResult;
